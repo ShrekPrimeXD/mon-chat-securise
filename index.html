@@ -3,159 +3,370 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat Sécurisé entre Potos</title>
+    <title>Chat en Temps Réel entre Potos</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
-        .container { max-width: 800px; margin: 0 auto; background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .container { max-width: 900px; margin: 0 auto; background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.2); }
         header { background: linear-gradient(to right, #4A00E0, #8E2DE2); color: white; padding: 25px; text-align: center; }
-        header h1 { font-size: 2.2rem; margin-bottom: 10px; }
-        .setup { padding: 40px; text-align: center; }
-        .setup h2 { color: #4A00E0; margin-bottom: 25px; }
-        .username-input { margin-bottom: 25px; }
-        .username-input input { padding: 15px; font-size: 1.1rem; width: 300px; max-width: 100%; border: 2px solid #ddd; border-radius: 8px; margin-bottom: 15px; }
-        .start-btn { padding: 15px 30px; background: linear-gradient(to right, #4A00E0, #8E2DE2); color: white; border: none; border-radius: 8px; font-size: 1.1rem; cursor: pointer; transition: transform 0.3s; }
-        .start-btn:hover { transform: translateY(-3px); }
+        header h1 { font-size: 2.5rem; margin-bottom: 10px; }
+        
+        /* Configuration Supabase */
+        .setup { padding: 40px; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 25px; }
+        .tab { padding: 12px 25px; background: #f0f0f0; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
+        .tab.active { background: #4A00E0; color: white; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        /* Chat */
         .chat-container { display: none; padding: 20px; }
-        .messages { height: 400px; overflow-y: auto; border: 2px solid #eee; border-radius: 10px; padding: 15px; margin-bottom: 20px; background: #f9f9f9; }
-        .message { margin-bottom: 15px; padding: 12px; border-radius: 10px; max-width: 80%; }
+        .chat-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #eee; }
+        .user-info { display: flex; align-items: center; gap: 15px; }
+        .user-info span { font-weight: 600; color: #4A00E0; }
+        
+        .messages { height: 450px; overflow-y: auto; padding: 20px; background: #f9f9f9; border-radius: 15px; margin-bottom: 20px; border: 2px solid #eee; }
+        .message { margin-bottom: 20px; padding: 15px; border-radius: 15px; max-width: 80%; animation: fadeIn 0.3s; }
         .my { background: linear-gradient(to right, #4A00E0, #8E2DE2); color: white; margin-left: auto; }
-        .other { background: #f0f0f0; }
-        .system { background: #fff3cd; color: #856404; border-left: 4px solid #ffc107; }
-        .message-sender { font-weight: bold; margin-bottom: 5px; }
-        .input-area { display: flex; gap: 10px; }
-        .input-area input { flex: 1; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 1rem; }
-        .input-area button { padding: 12px 25px; background: linear-gradient(to right, #4A00E0, #8E2DE2); color: white; border: none; border-radius: 8px; cursor: pointer; }
-        footer { text-align: center; padding: 20px; background: #f8f9fa; color: #666; }
-        .error { color: red; margin-top: 10px; display: none; }
-        @media (max-width: 600px) { .input-area { flex-direction: column; } .input-area button { width: 100%; } }
+        .other { background: #f0f0f0; margin-right: auto; }
+        .system { background: #fff3cd; color: #856404; border-left: 4px solid #ffc107; max-width: 100%; }
+        
+        .input-area { display: flex; gap: 15px; margin-bottom: 20px; }
+        .input-area input { flex: 1; padding: 15px; border: 2px solid #ddd; border-radius: 10px; font-size: 1rem; }
+        .input-area button { padding: 15px 30px; background: linear-gradient(to right, #4A00E0, #8E2DE2); color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; }
+        
+        .status { text-align: center; padding: 10px; background: #e8f4fd; border-radius: 8px; margin-bottom: 20px; }
+        .status.connected { background: #d4edda; color: #155724; }
+        
+        footer { text-align: center; padding: 25px; background: #f8f9fa; color: #666; }
+        
+        /* Formulaires */
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; }
+        .form-group input { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; }
+        
+        .btn { padding: 15px 30px; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 10px; }
+        .btn-primary { background: linear-gradient(to right, #4A00E0, #8E2DE2); color: white; }
+        .btn-secondary { background: #6c757d; color: white; }
+        
+        .info-box { background: #e8f4fd; padding: 20px; border-radius: 10px; margin: 20px 0; border-left: 5px solid #4A00E0; }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1><i class="fas fa-comment-shield"></i> Chat Sécurisé</h1>
-            <p>Discutez avec vos potes en toute simplicité</p>
+            <h1><i class="fas fa-comments"></i> Chat en Temps Réel</h1>
+            <p>Tous vos amis voient les mêmes messages en direct !</p>
         </header>
         
+        <!-- Configuration -->
         <div class="setup" id="setup">
-            <h2>Entrez votre pseudo</h2>
-            <div class="username-input">
-                <input type="text" id="username" placeholder="Votre pseudo" value="Poto">
+            <div class="tabs">
+                <button class="tab active" onclick="showTab('supabaseTab')">Chat Réel (Recommandé)</button>
+                <button class="tab" onclick="showTab('demoTab')">Mode Démo (Solo)</button>
             </div>
-            <button class="start-btn" onclick="startChat()">
-                <i class="fas fa-play"></i> Démarrer le chat
-            </button>
-            <div id="error" class="error"></div>
+            
+            <!-- TAB 1: Supabase (Temps réel) -->
+            <div id="supabaseTab" class="tab-content active">
+                <h2><i class="fas fa-bolt"></i> Chat en temps réel avec vos amis</h2>
+                
+                <div class="info-box">
+                    <h3><i class="fas fa-info-circle"></i> Instructions (5 minutes) :</h3>
+                    <ol>
+                        <li>Créez un compte gratuit sur <a href="https://supabase.com" target="_blank">supabase.com</a></li>
+                        <li>Créez un nouveau projet</li>
+                        <li>Dans Table Editor, créez une table appelée <code>messages</code></li>
+                        <li>Ajoutez ces colonnes : <code>id</code>, <code>username</code>, <code>message</code>, <code>created_at</code></li>
+                        <li>Dans Settings > API, copiez l'URL et la clé "anon public"</li>
+                    </ol>
+                </div>
+                
+                <div class="form-group">
+                    <label>URL Supabase :</label>
+                    <input type="text" id="supabaseUrl" placeholder="https://xxxxxxxxx.supabase.co">
+                </div>
+                
+                <div class="form-group">
+                    <label>Clé API (anon public) :</label>
+                    <input type="text" id="supabaseKey" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
+                </div>
+                
+                <div class="form-group">
+                    <label>Votre pseudo :</label>
+                    <input type="text" id="supabaseUsername" placeholder="Votre nom" value="Poto">
+                </div>
+                
+                <button class="btn btn-primary" onclick="startSupabaseChat()">
+                    <i class="fas fa-rocket"></i> Lancer le chat en temps réel
+                </button>
+                
+                <div class="status" id="supabaseStatus">Prêt à se connecter...</div>
+            </div>
+            
+            <!-- TAB 2: Mode Démo -->
+            <div id="demoTab" class="tab-content">
+                <h2><i class="fas fa-user"></i> Mode Démo (Test solo)</h2>
+                <p>Testez le chat localement sans configuration :</p>
+                
+                <div class="form-group">
+                    <label>Votre pseudo :</label>
+                    <input type="text" id="demoUsername" placeholder="Votre nom" value="Poto">
+                </div>
+                
+                <button class="btn btn-secondary" onclick="startDemoChat()">
+                    <i class="fas fa-play"></i> Démarrer en mode démo
+                </button>
+                
+                <p style="margin-top: 20px; color: #666;">
+                    <i class="fas fa-exclamation-triangle"></i> 
+                    En mode démo, seul vous verrez vos messages.
+                </p>
+            </div>
         </div>
         
-        <div class="chat-container" id="chat">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h2><i class="fas fa-comments"></i> Chat en direct</h2>
-                <div>
-                    <span id="currentUser" style="font-weight: bold; color: #4A00E0;"></span>
-                    <button onclick="changeUser()" style="margin-left: 10px; padding: 5px 10px; background: #f0f0f0; border: none; border-radius: 5px; cursor: pointer;">
-                        <i class="fas fa-edit"></i>
+        <!-- Chat Interface -->
+        <div class="chat-container" id="chatContainer">
+            <div class="chat-header">
+                <h2><i class="fas fa-comment-dots"></i> Salon de discussion</h2>
+                <div class="user-info">
+                    <span id="currentUsername"></span>
+                    <button class="btn" onclick="changeUsername()" style="padding: 8px 15px; background: #f0f0f0;">
+                        <i class="fas fa-edit"></i> Changer
                     </button>
                 </div>
             </div>
             
+            <div class="status" id="connectionStatus">
+                <i class="fas fa-circle"></i> Connexion...
+            </div>
+            
             <div class="messages" id="messages">
                 <div class="message system">
-                    <div class="message-sender">Système</div>
-                    <div>Bienvenue ! Entrez un pseudo pour commencer.</div>
+                    <div><strong>Système</strong></div>
+                    <div>Chargement des messages...</div>
                 </div>
             </div>
             
             <div class="input-area">
-                <input type="text" id="messageInput" placeholder="Tapez votre message..." onkeypress="if(event.key=='Enter') sendMessage()">
-                <button onclick="sendMessage()"><i class="fas fa-paper-plane"></i> Envoyer</button>
+                <input type="text" id="messageInput" placeholder="Écrivez votre message... (Entrée pour envoyer)">
+                <button onclick="sendMessage()">
+                    <i class="fas fa-paper-plane"></i> Envoyer
+                </button>
             </div>
             
-            <div style="margin-top: 20px; text-align: center;">
-                <small>Les messages sont stockés localement sur votre appareil.</small>
+            <div style="text-align: center; margin-top: 20px;">
+                <button onclick="clearChat()" style="padding: 10px 20px; background: #dc3545; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                    <i class="fas fa-trash"></i> Effacer l'historique
+                </button>
+                <p style="margin-top: 10px; color: #666; font-size: 0.9rem;">
+                    Partagez le lien avec vos amis : <span id="chatLink"></span>
+                </p>
             </div>
         </div>
         
         <footer>
-            <p>Chat créé en 30min • Hébergé gratuitement sur GitHub Pages</p>
-            <p><small>Actualisez la page pour effacer l'historique</small></p>
+            <p>Chat en temps réel • Partagez le lien avec vos potes !</p>
+            <p><small>Hébergé gratuitement sur GitHub Pages + Supabase</small></p>
         </footer>
     </div>
-
+    
+    <!-- Supabase JS -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    
     <script>
         // Variables
-        let username = "Poto";
-        let messages = [];
+        let supabaseClient = null;
+        let currentUser = "Poto";
+        let isDemoMode = false;
+        let demoMessages = [];
         
-        // Démarrer le chat
-        function startChat() {
-            const input = document.getElementById('username');
-            const errorDiv = document.getElementById('error');
+        // Afficher les onglets
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
             
-            if (!input.value.trim()) {
-                errorDiv.textContent = "Veuillez entrer un pseudo !";
-                errorDiv.style.display = 'block';
+            document.getElementById(tabId).classList.add('active');
+            event.target.classList.add('active');
+        }
+        
+        // Démarrer le chat Supabase (TEMPS RÉEL)
+        async function startSupabaseChat() {
+            const url = document.getElementById('supabaseUrl').value.trim();
+            const key = document.getElementById('supabaseKey').value.trim();
+            const username = document.getElementById('supabaseUsername').value.trim() || "Poto";
+            
+            if (!url || !key) {
+                alert("Veuillez entrer l'URL et la clé Supabase");
                 return;
             }
             
-            username = input.value.trim();
+            currentUser = username;
+            isDemoMode = false;
             
-            // Sauvegarder le pseudo
-            localStorage.setItem('chat_username', username);
+            // Mettre à jour le statut
+            const status = document.getElementById('supabaseStatus');
+            status.textContent = "Connexion à Supabase...";
             
-            // Basculer vers le chat
+            try {
+                // Initialiser Supabase
+                supabaseClient = window.supabase.createClient(url, key);
+                
+                // Tester la connexion
+                const { data, error } = await supabaseClient
+                    .from('messages')
+                    .select('*')
+                    .limit(1);
+                
+                if (error) {
+                    // Si la table n'existe pas
+                    if (error.message.includes('relation') || error.code === 'PGRST301') {
+                        const create = confirm("La table 'messages' n'existe pas. Voulez-vous essayer de la créer ?");
+                        
+                        if (create) {
+                            await createTable();
+                        } else {
+                            status.textContent = "Erreur : Table 'messages' manquante";
+                            return;
+                        }
+                    } else {
+                        status.textContent = "Erreur de connexion : " + error.message;
+                        return;
+                    }
+                }
+                
+                // Démarrer le chat
+                startChat();
+                setupRealtime();
+                status.textContent = "Connecté à Supabase !";
+                status.classList.add('connected');
+                
+            } catch (error) {
+                status.textContent = "Erreur : " + error.message;
+                console.error(error);
+            }
+        }
+        
+        // Créer la table messages
+        async function createTable() {
+            try {
+                // Essayer d'insérer un message (créera la table si elle n'existe pas avec les bonnes colonnes)
+                const { error } = await supabaseClient
+                    .from('messages')
+                    .insert({
+                        username: 'System',
+                        message: 'Table créée avec succès !',
+                        created_at: new Date().toISOString()
+                    });
+                
+                if (error) {
+                    throw new Error("Impossible de créer la table automatiquement. Veuillez la créer manuellement dans Supabase.");
+                }
+                
+                return true;
+            } catch (error) {
+                alert(error.message);
+                throw error;
+            }
+        }
+        
+        // Mode démo
+        function startDemoChat() {
+            const username = document.getElementById('demoUsername').value.trim() || "Poto";
+            currentUser = username;
+            isDemoMode = true;
+            supabaseClient = null;
+            
+            // Ajouter des messages d'exemple
+            demoMessages = [
+                { id: 1, username: "System", message: "Mode démo activé - Seul vous voyez ces messages", created_at: new Date().toISOString() },
+                { id: 2, username: "Poto1", message: "Salut ! Test du chat", created_at: new Date().toISOString() },
+                { id: 3, username: "Poto2", message: "Ça marche super bien ! 😄", created_at: new Date().toISOString() }
+            ];
+            
+            startChat();
+            
+            const status = document.getElementById('connectionStatus');
+            status.innerHTML = '<i class="fas fa-circle"></i> Mode démo - Messages locaux uniquement';
+            status.classList.add('connected');
+        }
+        
+        // Démarrer le chat
+        function startChat() {
             document.getElementById('setup').style.display = 'none';
-            document.getElementById('chat').style.display = 'block';
+            document.getElementById('chatContainer').style.display = 'block';
+            document.getElementById('currentUsername').textContent = currentUser;
             
-            // Afficher le pseudo
-            document.getElementById('currentUser').textContent = username;
+            // Afficher le lien de partage
+            document.getElementById('chatLink').textContent = window.location.href;
             
-            // Charger les messages sauvegardés
+            // Charger les messages
             loadMessages();
             
-            // Focus sur le champ de message
+            // Focus sur le champ
             setTimeout(() => {
                 document.getElementById('messageInput').focus();
             }, 100);
         }
         
         // Charger les messages
-        function loadMessages() {
-            const saved = localStorage.getItem('chat_messages');
-            if (saved) {
-                try {
-                    messages = JSON.parse(saved);
-                    displayMessages();
-                } catch (e) {
-                    messages = [];
-                }
+        async function loadMessages() {
+            const messagesDiv = document.getElementById('messages');
+            messagesDiv.innerHTML = '<div class="message system"><div><strong>Système</strong></div><div>Chargement...</div></div>';
+            
+            if (isDemoMode) {
+                // Mode démo
+                displayMessages(demoMessages);
+                return;
+            }
+            
+            // Mode Supabase
+            try {
+                const { data, error } = await supabaseClient
+                    .from('messages')
+                    .select('*')
+                    .order('created_at', { ascending: true });
+                
+                if (error) throw error;
+                
+                displayMessages(data || []);
+            } catch (error) {
+                messagesDiv.innerHTML = '<div class="message system"><div><strong>Erreur</strong></div><div>' + error.message + '</div></div>';
             }
         }
         
-        // Afficher tous les messages
-        function displayMessages() {
-            const container = document.getElementById('messages');
-            container.innerHTML = '';
+        // Afficher les messages
+        function displayMessages(messages) {
+            const messagesDiv = document.getElementById('messages');
+            messagesDiv.innerHTML = '';
+            
+            if (messages.length === 0) {
+                messagesDiv.innerHTML = '<div class="message system"><div><strong>Système</strong></div><div>Aucun message. Soyez le premier à écrire !</div></div>';
+                return;
+            }
             
             messages.forEach(msg => {
-                addMessageToDisplay(msg.username, msg.text, msg.type);
+                addMessageToDisplay(msg.username, msg.message, msg.created_at);
             });
             
-            // Faire défiler vers le bas
-            container.scrollTop = container.scrollHeight;
+            scrollToBottom();
         }
         
         // Ajouter un message à l'affichage
-        function addMessageToDisplay(sender, text, type = 'normal') {
-            const container = document.getElementById('messages');
+        function addMessageToDisplay(username, message, timestamp) {
+            const messagesDiv = document.getElementById('messages');
             const div = document.createElement('div');
             
+            // Formater la date
+            const date = new Date(timestamp);
+            const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
+            // Déterminer la classe
             let className = 'message ';
-            if (sender === username) {
+            if (username === currentUser) {
                 className += 'my';
-            } else if (type === 'system') {
+            } else if (username === 'System') {
                 className += 'system';
             } else {
                 className += 'other';
@@ -163,112 +374,165 @@
             
             div.className = className;
             div.innerHTML = `
-                <div class="message-sender">${escapeHtml(sender)}</div>
-                <div>${escapeHtml(text)}</div>
+                <div><strong>${escapeHtml(username)}</strong> <small>${timeStr}</small></div>
+                <div>${escapeHtml(message)}</div>
             `;
             
-            container.appendChild(div);
-            container.scrollTop = container.scrollHeight;
+            messagesDiv.appendChild(div);
+            scrollToBottom();
+        }
+        
+        // Configurer l'écoute en temps réel
+        function setupRealtime() {
+            if (isDemoMode || !supabaseClient) return;
+            
+            // S'abonner aux nouveaux messages
+            supabaseClient
+                .channel('public:messages')
+                .on('postgres_changes', 
+                    { event: 'INSERT', schema: 'public', table: 'messages' },
+                    (payload) => {
+                        // Afficher le nouveau message
+                        addMessageToDisplay(
+                            payload.new.username,
+                            payload.new.message,
+                            payload.new.created_at
+                        );
+                        
+                        // Jouer un son (optionnel)
+                        playNotificationSound();
+                    }
+                )
+                .subscribe();
+            
+            // Mettre à jour le statut
+            const status = document.getElementById('connectionStatus');
+            status.innerHTML = '<i class="fas fa-circle"></i> Connecté en temps réel ! Vos amis voient vos messages.';
+            status.classList.add('connected');
         }
         
         // Envoyer un message
-        function sendMessage() {
+        async function sendMessage() {
             const input = document.getElementById('messageInput');
-            const text = input.value.trim();
+            const message = input.value.trim();
             
-            if (!text) return;
+            if (!message) return;
             
-            // Créer le message
-            const message = {
-                username: username,
-                text: text,
-                time: new Date().toLocaleTimeString()
-            };
-            
-            // Ajouter à la liste
-            messages.push(message);
-            
-            // Sauvegarder (limiter à 100 messages)
-            if (messages.length > 100) {
-                messages = messages.slice(-100);
+            if (isDemoMode) {
+                // Mode démo
+                const newMsg = {
+                    id: demoMessages.length + 1,
+                    username: currentUser,
+                    message: message,
+                    created_at: new Date().toISOString()
+                };
+                
+                demoMessages.push(newMsg);
+                addMessageToDisplay(currentUser, message, new Date().toISOString());
+                input.value = '';
+                return;
             }
-            localStorage.setItem('chat_messages', JSON.stringify(messages));
             
-            // Afficher le message
-            addMessageToDisplay(username, text);
-            
-            // Réinitialiser
-            input.value = '';
-            input.focus();
-            
-            // Réponse automatique (optionnelle)
-            if (messages.length < 5) {
-                setTimeout(() => {
-                    const responses = [
-                        "Salut ! Comment ça va ?",
-                        "Ça marche super ce chat !",
-                        "Qui d'autre est là ?",
-                        "Test test 1, 2, 3"
-                    ];
-                    const randomResponse = responses[Math.floor(Math.random() * responses.length)];
-                    const botMessage = {
-                        username: "Bot_" + Math.floor(Math.random() * 100),
-                        text: randomResponse,
-                        time: new Date().toLocaleTimeString()
-                    };
-                    
-                    messages.push(botMessage);
-                    localStorage.setItem('chat_messages', JSON.stringify(messages));
-                    addMessageToDisplay(botMessage.username, botMessage.text);
-                }, 1000);
+            // Mode Supabase
+            try {
+                const { error } = await supabaseClient
+                    .from('messages')
+                    .insert({
+                        username: currentUser,
+                        message: message,
+                        created_at: new Date().toISOString()
+                    });
+                
+                if (error) throw error;
+                
+                input.value = '';
+                
+            } catch (error) {
+                alert("Erreur d'envoi : " + error.message);
             }
         }
         
-        // Changer d'utilisateur
-        function changeUser() {
-            const newUsername = prompt("Nouveau pseudo :", username);
+        // Effacer l'historique
+        async function clearChat() {
+            if (!confirm("Effacer tous les messages ?")) return;
+            
+            if (isDemoMode) {
+                demoMessages = [];
+                loadMessages();
+                return;
+            }
+            
+            try {
+                const { error } = await supabaseClient
+                    .from('messages')
+                    .delete()
+                    .neq('id', 0);
+                
+                if (error) throw error;
+                
+                loadMessages();
+            } catch (error) {
+                alert("Erreur : " + error.message);
+            }
+        }
+        
+        // Changer de pseudo
+        function changeUsername() {
+            const newUsername = prompt("Nouveau pseudo :", currentUser);
             if (newUsername && newUsername.trim()) {
-                username = newUsername.trim();
-                localStorage.setItem('chat_username', username);
-                document.getElementById('currentUser').textContent = username;
+                currentUser = newUsername.trim();
+                document.getElementById('currentUsername').textContent = currentUser;
             }
         }
         
-        // Échapper le HTML
+        // Utilitaires
+        function scrollToBottom() {
+            const messagesDiv = document.getElementById('messages');
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+        
         function escapeHtml(text) {
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
         }
         
-        // Initialisation au chargement
+        function playNotificationSound() {
+            // Créer un son de notification simple
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.value = 800;
+                oscillator.type = 'sine';
+                gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+                
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 0.2);
+            } catch (e) {
+                // Ignorer les erreurs audio
+            }
+        }
+        
+        // Entrée pour envoyer
+        document.getElementById('messageInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+        
+        // Initialisation
         window.onload = function() {
-            // Récupérer le pseudo sauvegardé
-            const savedUsername = localStorage.getItem('chat_username');
-            if (savedUsername) {
-                document.getElementById('username').value = savedUsername;
-            }
+            console.log("Chat prêt !");
             
-            // Si on a déjà des messages, montrer directement le chat
-            const savedMessages = localStorage.getItem('chat_messages');
-            if (savedMessages && JSON.parse(savedMessages).length > 0) {
-                username = savedUsername || "Poto";
-                document.getElementById('setup').style.display = 'none';
-                document.getElementById('chat').style.display = 'block';
-                document.getElementById('currentUser').textContent = username;
-                loadMessages();
-            }
-            
-            // Raccourci Ctrl+E pour effacer
-            document.addEventListener('keydown', function(e) {
-                if (e.ctrlKey && e.key === 'e') {
-                    if (confirm("Effacer tout l'historique ?")) {
-                        localStorage.removeItem('chat_messages');
-                        messages = [];
-                        document.getElementById('messages').innerHTML = '<div class="message system"><div class="message-sender">Système</div><div>Historique effacé. Envoyez un message !</div></div>';
-                    }
-                }
-            });
+            // Pré-remplir avec des exemples
+            document.getElementById('supabaseUsername').value = "Poto_" + Math.floor(Math.random() * 1000);
+            document.getElementById('demoUsername').value = "Poto_" + Math.floor(Math.random() * 1000);
         };
     </script>
 </body>
