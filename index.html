@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Direct entre Potos</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { 
+            margin: 0; padding: 0; box-sizing: border-box; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+        }
+        
+        body { 
+            background: linear-gradient(135deg, #6e8efb, #a777e3);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(to right, #4776E6, #8E54E9);
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+        
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .setup {
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .setup h2 {
+            color: #4776E6;
+            margin-bottom: 25px;
+            font-size: 1.8rem;
+        }
+        
+        .username-input {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .username-input input {
+            padding: 15px 20px;
+            font-size: 1.1rem;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            width: 300px;
+            max-width: 100%;
+            transition: border 0.3s;
+        }
+        
+        .username-input input:focus {
+            border-color: #4776E6;
+            outline: none;
+        }
+        
+        .start-btn {
+            padding: 15px 35px;
+            background: linear-gradient(to right, #4776E6, #8E54E9);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .start-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 7px 15px rgba(71, 118, 230, 0.3);
+        }
+        
+        .features {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 40px;
+            flex-wrap: wrap;
+        }
+        
+        .feature {
+            background: #f8f9ff;
+            padding: 20px;
+            border-radius: 10px;
+            width: 200px;
+            text-align: center;
+            border: 2px solid #e6e9ff;
+        }
+        
+        .feature i {
+            font-size: 2rem;
+            color: #4776E6;
+            margin-bottom: 15px;
+        }
+        
+        .chat-container {
+            display: none;
+            padding: 20px;
+        }
+        
+        .chat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: #f8f9ff;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .user-info span {
+            font-weight: 600;
+            color: #4776E6;
+        }
+        
+        .change-user-btn {
+            padding: 8px 16px;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        
+        .messages-container {
+            height: 450px;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            border: 2px solid #eee;
+        }
+        
+        .message {
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 15px;
+            max-width: 80%;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .message.sent {
+            background: linear-gradient(to right, #4776E6, #8E54E9);
+            color: white;
+            margin-left: auto;
+            border-bottom-right-radius: 5px;
+        }
+        
+        .message.received {
+            background: #f0f0f0;
+            color: #333;
+            margin-right: auto;
+            border-bottom-left-radius: 5px;
+        }
+        
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+        
+        .message-sender {
+            font-weight: 600;
+        }
+        
+        .message-time {
+            opacity: 0.8;
+        }
+        
+        .message-content {
+            line-height: 1.5;
+            word-break: break-word;
+        }
+        
+        .empty-state {
+            text-align: center;
+            color: #888;
+            padding: 60px 20px;
+        }
+        
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+        
+        .input-area {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .message-input {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 1rem;
+            resize: none;
+            min-height: 60px;
+            font-family: inherit;
+        }
+        
+        .message-input:focus {
+            border-color: #4776E6;
+            outline: none;
+        }
+        
+        .send-btn {
+            padding: 15px 30px;
+            background: linear-gradient(to right, #4776E6, #8E54E9);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: transform 0.3s;
+        }
+        
+        .send-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .sample-messages {
+            margin-top: 25px;
+        }
+        
+        .sample-messages h4 {
+            margin-bottom: 15px;
+            color: #666;
+        }
+        
+        .message-examples {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .message-example {
+            background: #f0f0f0;
+            padding: 10px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .message-example:hover {
+            background: #e0e0e0;
+            transform: translateY(-2px);
+        }
+        
+        footer {
+            text-align: center;
+            padding: 25px;
+            background: #f8f9ff;
+            color: #666;
+            border-top: 2px solid #e6e9ff;
+        }
+        
+        footer a {
+            color: #4776E6;
+            text-decoration: none;
+        }
+        
+        footer a:hover {
+            text-decoration: underline;
+        }
+        
+        .github-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 15px;
+            padding: 10px 20px;
+            background: #333;
+            color: white;
+            border-radius: 5px;
+            text-decoration: none;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .username-input {
+                flex-direction: column;
+            }
+            
+            .username-input input {
+                width: 100%;
+            }
+            
+            .input-area {
+                flex-direction: column;
+            }
+            
+            .message {
+                max-width: 90%;
+            }
+            
+            .send-btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-comments"></i> Chat Direct entre Potos</h1>
+            <p class="subtitle">Discutez en temps réel - Simple, rapide, gratuit</p>
+        </header>
+        
+        <div class="setup" id="setup">
+            <h2>Commencez à chatter en 10 secondes</h2>
+            
+            <div class="username-input">
+                <input type="text" id="usernameInput" placeholder="Ton pseudo" value="Poto">
+                <button class="start-btn" onclick="startChat()">
+                    <i class="fas fa-play-circle"></i> Démarrer le chat
+                </button>
+            </div>
+            
+            <p style="color: #666; max-width: 600px; margin: 0 auto 30px;">
+                <i class="fas fa-info-circle"></i> Pas de configuration nécessaire ! 
+                Les messages sont stockés localement sur votre appareil.
+            </p>
+            
+            <div class="features">
+                <div class="feature">
+                    <i class="fas fa-bolt"></i>
+                    <h3>Instantanné</h3>
+                    <p>Commencez à chatter immédiatement</p>
+                </div>
+                <div class="feature">
+                    <i class="fas fa-mobile-alt"></i>
+                    <h3>Responsive</h3>
+                    <p>Fonctionne sur tous les appareils</p>
+                </div>
+                <div class="feature">
+                    <i class="fas fa-lock"></i>
+                    <h3>Simple</h3>
+                    <p>Aucun compte à créer</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="chat-container" id="chatContainer">
+            <div class="chat-header">
+                <h2><i class="fas fa-comment-dots"></i> Chat en direct</h2>
+                <div class="user-info">
+                    <span id="currentUserDisplay"></span>
+                    <button class="change-user-btn" onclick="changeUsername()">
+                        <i class="fas fa-user-edit"></i> Changer
+                    </button>
+                </div>
+            </div>
+            
+            <div class="messages-container" id="messagesContainer">
+                <div class="empty-state" id="emptyState">
+                    <i class="fas fa-comment-slash"></i>
+                    <p>Aucun message pour le moment. Envoyez le premier !</p>
+                </div>
+            </div>
+            
+            <div class="input-area">
+                <textarea class="message-input" id="messageInput" 
+                    placeholder="Écrivez votre message ici... (Appuyez sur Entrée pour envoyer)" 
+                    rows="3"></textarea>
+                <button class="send-btn" onclick="sendMessage()">
+                    <i class="fas fa-paper-plane"></i> Envoyer
+                </button>
+            </div>
+            
+            <div class="sample-messages" id="sampleMessages">
+                <h4>Exemples rapides :</h4>
+                <div class="message-examples">
+                    <div class="message-example" onclick="useSampleMessage('Salut les potos ! 👋')">Salut les potos ! 👋</div>
+                    <div class="message-example" onclick="useSampleMessage('Quoi de neuf ?')">Quoi de neuf ?</div>
+                    <div class="message-example" onclick="useSampleMessage('On se fait une soirée ce week-end ? 🎮')">Soirée ce week-end ? 🎮</div>
+                    <div class="message-example" onclick="useSampleMessage('😂😂😂')">😂😂😂</div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Ce chat fonctionne entièrement dans votre navigateur - Aucun serveur requis !</p>
+            <p>Partagez cette page avec vos amis pour discuter ensemble.</p>
+            <a href="https://github.com" target="_blank" class="github-link">
+                <i class="fab fa-github"></i> Voir le code sur GitHub
+            </a>
+            <p style="margin-top: 15px; font-size: 0.9rem; color: #888;">
+                <i class="fas fa-exclamation-triangle"></i> 
+                Les messages sont stockés localement et disparaissent si vous quittez la page.
+            </p>
+        </footer>
+    </div>
+    
+    <script>
+        // Variables
+        let username = "Poto";
+        let messages = JSON.parse(localStorage.getItem('chat_messages')) || [];
+        
+        // Démarrer le chat
+        function startChat() {
+            const usernameInput = document.getElementById('usernameInput');
+            username = usernameInput.value.trim() || "Poto";
+            
+            // Sauvegarder le pseudo
+            localStorage.setItem('chat_username', username);
+            
+            // Basculer vers le chat
+            document.getElementById('setup').style.display = 'none';
+            document.getElementById('chatContainer').style.display = 'block';
+            
+            // Afficher le pseudo
+            document.getElementById('currentUserDisplay').textContent = `Connecté en tant que : ${username}`;
+            
+            // Charger les messages
+            loadMessages();
+            
+            // Focus sur le champ de message
+            setTimeout(() => {
+                document.getElementById('messageInput').focus();
+            }, 100);
+            
+            // Ajouter un message de bienvenue si c'est le premier lancement
+            if (messages.length === 0) {
+                addSystemMessage(`Bienvenue ${username} ! Tapez un message pour commencer.`);
+            }
+        }
+        
+        // Charger les messages
+        function loadMessages() {
+            const messagesContainer = document.getElementById('messagesContainer');
+            const emptyState = document.getElementById('emptyState');
+            
+            // Masquer l'état vide s'il y a des messages
+            if (messages.length > 0) {
+                emptyState.style.display = 'none';
+                
+                // Afficher tous les messages
+                messages.forEach(msg => {
+                    displayMessage(msg);
+                });
+            } else {
+                emptyState.style.display = 'block';
+            }
+            
+            // Faire défiler vers le bas
+            scrollToBottom();
+        }
+        
+        // Afficher un message système
+        function addSystemMessage(text) {
+            const systemMessage = {
+                id: Date.now(),
+                username: "Système",
+                text: text,
+                time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+                isSystem: true
+            };
+            
+            messages.push(systemMessage);
+            localStorage.setItem('chat_messages', JSON.stringify(messages));
+            displayMessage(systemMessage);
+        }
+        
+        // Afficher un message
+        function displayMessage(msg) {
+            const messagesContainer = document.getElementById('messagesContainer');
+            const emptyState = document.getElementById('emptyState');
+            
+            // Masquer l'état vide
+            emptyState.style.display = 'none';
+            
+            // Créer l'élément du message
+            const messageElement = document.createElement('div');
+            messageElement.className = 'message ' + 
+                (msg.username === username ? 'sent' : 
+                 msg.isSystem ? 'received' : 'received');
+            
+            // Style spécial pour les messages système
+            if (msg.isSystem) {
+                messageElement.style.backgroundColor = '#fff3cd';
+                messageElement.style.color = '#856404';
+                messageElement.style.borderLeft = '4px solid #ffc107';
+            }
+            
+            messageElement.innerHTML = `
+                <div class="message-header">
+                    <span class="message-sender">${escapeHtml(msg.username)}</span>
+                    <span class="message-time">${msg.time}</span>
+                </div>
+                <div class="message-content">${escapeHtml(msg.text)}</div>
+            `;
+            
+            messagesContainer.appendChild(messageElement);
+            scrollToBottom();
+        }
+        
+        // Envoyer un message
+        function sendMessage() {
+            const messageInput = document.getElementById('messageInput');
+            const text = messageInput.value.trim();
+            
+            if (!text) return;
+            
+            // Créer le message
+            const message = {
+                id: Date.now(),
+                username: username,
+                text: text,
+                time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+            };
+            
+            // Ajouter à la liste
+            messages.push(message);
+            
+            // Sauvegarder dans le localStorage
+            localStorage.setItem('chat_messages', JSON.stringify(messages));
+            
+            // Afficher le message
+            displayMessage(message);
+            
+            // Réinitialiser le champ
+            messageInput.value = '';
+            messageInput.focus();
+            
+            // Réponse automatique amusante
+            setTimeout(() => {
+                if (Math.random() > 0.7 && messages.length < 10) {
+                    const responses = [
+                        "Ça marche super bien ce chat !",
+                        "Qui d'autre est connecté ?",
+                        "Tu as vu ça ? 😂",
+                        "On se fait une partie ?",
+                        "Je teste le chat aussi !"
+                    ];
+                    
+                    const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+                    const autoMessage = {
+                        id: Date.now(),
+                        username: "Poto_" + Math.floor(Math.random() * 1000),
+                        text: randomResponse,
+                        time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+                    };
+                    
+                    messages.push(autoMessage);
+                    localStorage.setItem('chat_messages', JSON.stringify(messages));
+                    displayMessage(autoMessage);
+                }
+            }, 1000);
+        }
+        
+        // Utiliser un message exemple
+        function useSampleMessage(text) {
+            document.getElementById('messageInput').value = text;
+            document.getElementById('messageInput').focus();
+        }
+        
+        // Changer de pseudo
+        function changeUsername() {
+            const newUsername = prompt("Choisis un nouveau pseudo :", username);
+            if (newUsername && newUsername.trim() !== "") {
+                username = newUsername.trim();
+                localStorage.setItem('chat_username', username);
+                document.getElementById('currentUserDisplay').textContent = `Connecté en tant que : ${username}`;
+                
+                // Mettre à jour les messages existants
+                messages = messages.map(msg => {
+                    if (msg.username === localStorage.getItem('chat_username')) {
+             
