@@ -12,13 +12,24 @@
         header { background: linear-gradient(to right, #4A00E0, #8E2DE2); color: white; padding: 25px; text-align: center; }
         header h1 { font-size: 2.5rem; margin-bottom: 10px; }
         
-        /* Écran mot de passe */
-        .password-screen { padding: 50px 30px; text-align: center; }
-        .password-screen h2 { color: #4A00E0; margin-bottom: 30px; }
-        .password-input { max-width: 400px; margin: 0 auto; }
-        .password-input input { width: 100%; padding: 15px; font-size: 1.2rem; border: 2px solid #ddd; border-radius: 10px; text-align: center; letter-spacing: 2px; }
-        .password-input button { width: 100%; padding: 15px; margin-top: 20px; background: #4A00E0; color: white; border: none; border-radius: 10px; font-size: 1.2rem; cursor: pointer; }
-        .error { color: #dc3545; margin-top: 15px; display: none; }
+        /* Écran d'accès */
+        .access-screen { padding: 50px 30px; text-align: center; }
+        .access-screen h2 { color: #4A00E0; margin-bottom: 30px; }
+        
+        .access-form { max-width: 400px; margin: 0 auto; }
+        .form-step { display: none; }
+        .form-step.active { display: block; animation: fadeIn 0.5s; }
+        
+        .form-group { margin-bottom: 25px; text-align: left; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #333; }
+        .form-group input { width: 100%; padding: 15px; font-size: 1.1rem; border: 2px solid #ddd; border-radius: 10px; }
+        .form-group input:focus { border-color: #4A00E0; outline: none; }
+        
+        .access-button { width: 100%; padding: 15px; margin-top: 10px; background: #4A00E0; color: white; border: none; border-radius: 10px; font-size: 1.2rem; cursor: pointer; transition: transform 0.3s; }
+        .access-button:hover { transform: translateY(-3px); }
+        
+        .error { color: #dc3545; margin-top: 10px; text-align: center; display: none; }
+        .success { color: #28a745; margin-top: 10px; text-align: center; display: none; }
         
         /* Chat */
         .chat-container { display: none; padding: 25px; }
@@ -43,43 +54,90 @@
         
         footer { text-align: center; padding: 20px; background: #f8f9fa; color: #666; }
         
+        /* Navigation entre étapes */
+        .step-indicator { display: flex; justify-content: center; gap: 30px; margin-bottom: 30px; }
+        .step { display: flex; flex-direction: column; align-items: center; }
+        .step-circle { width: 40px; height: 40px; border-radius: 50%; background: #ddd; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-bottom: 10px; }
+        .step.active .step-circle { background: #4A00E0; color: white; }
+        .step.completed .step-circle { background: #28a745; color: white; }
+        .step-label { font-size: 0.9rem; color: #666; }
+        
         /* Responsive */
         @media (max-width: 768px) {
             .chat-header { flex-direction: column; align-items: flex-start; gap: 15px; }
             .input-area { flex-direction: column; }
             .input-area button { width: 100%; }
+            .step-indicator { gap: 15px; }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>🔒 Chat Privé entre Potos</h1>
-            <p>Accès réservé - Mot de passe requis</p>
+            <h1>🔒 Chat Privé entre Camarades</h1>
+            <p>Accès réservé - Choisis ton pseudo !</p>
         </header>
         
-        <!-- Écran mot de passe -->
-        <div class="password-screen" id="passwordScreen">
-            <h2>🔐 Accès au Chat Privé</h2>
-            <p>Entrez le mot de passe pour accéder au chat :</p>
+        <!-- Écran d'accès -->
+        <div class="access-screen" id="accessScreen">
+            <h2>🔐 Accès au Chat</h2>
             
-            <div class="password-input">
-                <input type="password" id="passwordInput" placeholder="Mot de passe" maxlength="10">
-                <button onclick="checkPassword()">🔓 Accéder au Chat</button>
-                <div class="error" id="passwordError">Mot de passe incorrect</div>
+            <div class="step-indicator">
+                <div class="step active" id="step1">
+                    <div class="step-circle">1</div>
+                    <div class="step-label">Mot de passe</div>
+                </div>
+                <div class="step" id="step2">
+                    <div class="step-circle">2</div>
+                    <div class="step-label">Ton pseudo</div>
+                </div>
+                <div class="step" id="step3">
+                    <div class="step-circle">3</div>
+                    <div class="step-label">Chatter !</div>
+                </div>
+            </div>
+            
+            <div class="access-form">
+                <!-- Étape 1 : Mot de passe -->
+                <div class="form-step active" id="stepPassword">
+                    <div class="form-group">
+                        <label for="passwordInput">Mot de passe du chat :</label>
+                        <input type="password" id="passwordInput" placeholder="Entre le mot de passe" maxlength="10">
+                    </div>
+                    <button class="access-button" onclick="checkPassword()">
+                        🔓 Vérifier le mot de passe
+                    </button>
+                    <div class="error" id="passwordError">Mot de passe incorrect</div>
+                </div>
+                
+                <!-- Étape 2 : Pseudo -->
+                <div class="form-step" id="stepUsername">
+                    <div class="form-group">
+                        <label for="usernameInput">Choisis ton pseudo :</label>
+                        <input type="text" id="usernameInput" placeholder="Ex: Maxime, Sarah, Tom..." maxlength="20" autofocus>
+                        <small style="color: #666; display: block; margin-top: 5px;">
+                            Choisis un nom unique pour que tout le monde te reconnaisse !
+                        </small>
+                    </div>
+                    <button class="access-button" onclick="setUsername()">
+                        ✅ Valider mon pseudo
+                    </button>
+                    <div class="error" id="usernameError">Le pseudo ne peut pas être vide</div>
+                    <div class="success" id="usernameSuccess">Pseudo validé !</div>
+                </div>
             </div>
             
             <p style="margin-top: 30px; color: #666; font-size: 0.9rem;">
-                <i>Demandez le mot de passe à l'administrateur du chat</i>
+                <i>Demande le mot de passe à tes camarades</i>
             </p>
         </div>
         
         <!-- Interface du chat -->
         <div class="chat-container" id="chatContainer">
             <div class="chat-header">
-                <h2 style="color: #4A00E0;">💬 Salon Privé</h2>
+                <h2 style="color: #4A00E0;">💬 Salon de Classe</h2>
                 <div class="user-info">
-                    <span style="font-weight: bold; color: #4A00E0;" id="currentUser"></span>
+                    <span style="font-weight: bold; color: #4A00E0; font-size: 1.1rem;" id="currentUser"></span>
                     <button onclick="changeUsername()" style="padding: 8px 15px; background: #f0f0f0; color: #333; border: none; border-radius: 5px;">
                         ✏️ Changer
                     </button>
@@ -87,18 +145,18 @@
             </div>
             
             <div class="status connected" id="status">
-                ✅ Connecté au chat privé
+                ✅ Connecté au chat - En temps réel
             </div>
             
             <div class="messages" id="messages">
                 <div class="message system">
-                    <strong>🔐 Système</strong><br>
-                    Bienvenue dans le chat privé ! Chargement des messages...
+                    <strong>👋 Bienvenue !</strong><br>
+                    Chargement des messages...
                 </div>
             </div>
             
             <div class="input-area">
-                <input type="text" id="messageInput" placeholder="Écrivez votre message... (Entrée pour envoyer)" autofocus>
+                <input type="text" id="messageInput" placeholder="Écris ton message ici... (Entrée pour envoyer)" autofocus>
                 <button onclick="sendMessage()" id="sendBtn">📤 Envoyer</button>
             </div>
             
@@ -107,8 +165,11 @@
                     <button onclick="copyLink()" style="padding: 10px 20px; background: #17a2b8; color: white; border: none; border-radius: 8px;">
                         📋 Copier le lien
                     </button>
+                    <button onclick="suggestUsername()" style="padding: 10px 20px; background: #ffc107; color: #333; border: none; border-radius: 8px;">
+                        🎲 Pseudo aléatoire
+                    </button>
                     <button onclick="clearChat()" style="padding: 10px 20px; background: #dc3545; color: white; border: none; border-radius: 8px;">
-                        🗑️ Effacer l'historique
+                        🗑️ Effacer tout
                     </button>
                     <button onclick="logout()" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 8px;">
                         🚪 Quitter
@@ -116,13 +177,17 @@
                 </div>
                 
                 <p style="margin-top: 20px; color: #666; font-size: 0.9rem;">
-                    <strong>Lien à partager :</strong> <span id="chatLink"></span>
+                    <strong>Lien à partager :</strong> <span id="chatLink" style="word-break: break-all;"></span>
                 </p>
+                
+                <div style="margin-top: 20px; font-size: 0.8rem; color: #888;">
+                    <p>👥 Connectés : <span id="userCount">Chargement...</span></p>
+                </div>
             </div>
         </div>
         
         <footer>
-            <p>Chat privé sécurisé • Accès par mot de passe • Messages en temps réel</p>
+            <p>Chat privé pour la classe • Pseudo unique par personne • Messages en temps réel</p>
         </footer>
     </div>
     
@@ -131,63 +196,72 @@
     
     <script>
         // ============================================
-        // CONFIGURATION - MODIFIEZ ICI
+        // CONFIGURATION
         // ============================================
         const CONFIG = {
-            // Vos identifiants Supabase (NE PAS CHANGER)
             SUPABASE_URL: "https://tmwoupvariqvisopxrxe.supabase.co",
             SUPABASE_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRtd291cHZhcmlxdmlzb3B4cnhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0NDY2MjgsImV4cCI6MjA4MTAyMjYyOH0.A9yGS5OK63SOhcGo7fQHeabA_fdX59KVOxdfq0gSmn8",
-            
-            // MOT DE PASSE D'ACCÈS AU CHAT (VOUS POUVEZ LE CHANGER)
-            // Par défaut : "1234" - Changez-le ici :
-            CHAT_PASSWORD: "1234",
-            
-            // Nom par défaut des utilisateurs
-            DEFAULT_USERNAME: "CLASSMATE"
+            CHAT_PASSWORD: "1234"
         };
-        // ============================================
-        // FIN DE LA CONFIGURATION
-        // ============================================
         
         // Variables globales
         let supabase = null;
-        let currentUser = CONFIG.DEFAULT_USERNAME;
+        let currentUser = "";
         let isConnected = false;
+        let userList = new Set(); // Pour suivre les utilisateurs connectés
         
         // Initialisation
         function init() {
-            console.log("Initialisation du chat privé...");
+            console.log("Initialisation du chat...");
             
-            // Vérifier si l'utilisateur est déjà connecté (via localStorage)
+            // Vérifier si déjà connecté
             const savedAccess = localStorage.getItem('chat_access_granted');
             const savedUsername = localStorage.getItem('chat_username');
             
             if (savedAccess === 'true' && savedUsername) {
-                // Accès déjà autorisé
                 currentUser = savedUsername;
                 startChat();
             } else {
-                // Demander le mot de passe
-                document.getElementById('passwordScreen').style.display = 'block';
+                showStep('password');
                 document.getElementById('passwordInput').focus();
                 
-                // Entrée pour valider le mot de passe
+                // Entrée pour valider
                 document.getElementById('passwordInput').addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') {
-                        checkPassword();
-                    }
+                    if (e.key === 'Enter') checkPassword();
+                });
+                document.getElementById('usernameInput').addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') setUsername();
                 });
             }
             
-            // Raccourcis clavier
+            // Raccourcis
             document.addEventListener('keydown', function(e) {
-                if (e.ctrlKey && e.key === 'l') {
-                    copyLink();
-                }
-                if (e.ctrlKey && e.key === 'q') {
-                    logout();
-                }
+                if (e.ctrlKey && e.key === 'l') copyLink();
+                if (e.ctrlKey && e.key === 'q') logout();
+                if (e.ctrlKey && e.key === 'n') suggestUsername();
             });
+        }
+        
+        // Afficher une étape
+        function showStep(step) {
+            document.querySelectorAll('.form-step').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.step').forEach(el => {
+                el.classList.remove('active', 'completed');
+            });
+            
+            if (step === 'password') {
+                document.getElementById('stepPassword').classList.add('active');
+                document.getElementById('step1').classList.add('active');
+                document.getElementById('passwordInput').focus();
+            } else if (step === 'username') {
+                document.getElementById('stepUsername').classList.add('active');
+                document.getElementById('step1').classList.add('completed');
+                document.getElementById('step2').classList.add('active');
+                document.getElementById('usernameInput').focus();
+                
+                // Suggestion de pseudo
+                suggestUsername();
+            }
         }
         
         // Vérifier le mot de passe
@@ -196,49 +270,96 @@
             const errorDiv = document.getElementById('passwordError');
             
             if (input.value === CONFIG.CHAT_PASSWORD) {
-                // Mot de passe correct
                 errorDiv.style.display = 'none';
-                
-                // Demander un pseudo
-                const username = prompt("🎉 Mot de passe correct !\n\nEntrez votre pseudo :", currentUser);
-                if (username && username.trim()) {
-                    currentUser = username.trim();
-                    localStorage.setItem('chat_username', currentUser);
-                    localStorage.setItem('chat_access_granted', 'true');
-                    
-                    startChat();
-                }
+                showStep('username');
             } else {
-                // Mot de passe incorrect
                 errorDiv.style.display = 'block';
                 input.value = '';
                 input.focus();
                 
-                // Secouer l'input pour l'effet d'erreur
+                // Animation d'erreur
                 input.style.animation = 'shake 0.5s';
-                setTimeout(() => {
-                    input.style.animation = '';
-                }, 500);
+                setTimeout(() => input.style.animation = '', 500);
             }
         }
         
-        // Animation shake pour erreur
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes shake {
-                0%, 100% { transform: translateX(0); }
-                10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-                20%, 40%, 60%, 80% { transform: translateX(5px); }
+        // Définir le pseudo
+        function setUsername() {
+            const input = document.getElementById('usernameInput');
+            const errorDiv = document.getElementById('usernameError');
+            const successDiv = document.getElementById('usernameSuccess');
+            
+            const username = input.value.trim();
+            
+            if (!username) {
+                errorDiv.style.display = 'block';
+                successDiv.style.display = 'none';
+                input.focus();
+                return;
             }
-        `;
-        document.head.appendChild(style);
+            
+            if (username.length < 2) {
+                errorDiv.textContent = "Le pseudo doit faire au moins 2 caractères";
+                errorDiv.style.display = 'block';
+                successDiv.style.display = 'none';
+                input.focus();
+                return;
+            }
+            
+            if (username.length > 20) {
+                errorDiv.textContent = "Le pseudo ne peut pas dépasser 20 caractères";
+                errorDiv.style.display = 'block';
+                successDiv.style.display = 'none';
+                input.focus();
+                return;
+            }
+            
+            // Pseudo valide
+            errorDiv.style.display = 'none';
+            successDiv.style.display = 'block';
+            currentUser = username;
+            
+            // Sauvegarder et démarrer le chat
+            setTimeout(() => {
+                localStorage.setItem('chat_username', currentUser);
+                localStorage.setItem('chat_access_granted', 'true');
+                startChat();
+            }, 500);
+        }
+        
+        // Suggérer un pseudo aléatoire
+        function suggestUsername() {
+            const prenoms = [
+                "Maxime", "Léa", "Thomas", "Emma", "Lucas", "Chloé", "Hugo", "Manon", "Nathan", "Sarah",
+                "Alexandre", "Camille", "Antoine", "Julie", "Quentin", "Marine", "Baptiste", "Laura",
+                "Romain", "Pauline", "Mathis", "Océane", "Enzo", "Lucie", "Louis", "Clara", "Noah", "Jeanne",
+                "Gabriel", "Maëlys", "Jules", "Anaïs", "Adam", "Lola", "Arthur", "Elise", "Ethan", "Zoé"
+            ];
+            
+            const qualificatifs = [
+                "Du63", "LeBG", "LaFouine", "LeRigolo", "LaBoss", "LeGenie", "LaStar", "LeChampion",
+                "LaReine", "LeMec", "LaMec", "LePro", "LaPro", "LeCrew", "LaCrew", "DuCoin", "DesBois"
+            ];
+            
+            const prenom = prenoms[Math.floor(Math.random() * prenoms.length)];
+            const qualificatif = qualificatifs[Math.floor(Math.random() * qualificatifs.length)];
+            
+            const suggestions = [
+                `${prenom}`,
+                `${prenom}_${qualificatif}`,
+                `Elève_${Math.floor(Math.random() * 30) + 1}`,
+                `${prenom.charAt(0)}.${qualificatif}`,
+                `${prenom}${Math.floor(Math.random() * 99)}`
+            ];
+            
+            document.getElementById('usernameInput').value = suggestions[Math.floor(Math.random() * suggestions.length)];
+            document.getElementById('usernameInput').focus();
+        }
         
         // Démarrer le chat
         async function startChat() {
-            console.log("Démarrage du chat...");
-            
-            // Cacher l'écran mot de passe, montrer le chat
-            document.getElementById('passwordScreen').style.display = 'none';
+            // Cacher l'accès, montrer le chat
+            document.getElementById('accessScreen').style.display = 'none';
             document.getElementById('chatContainer').style.display = 'block';
             document.getElementById('currentUser').textContent = currentUser;
             document.getElementById('chatLink').textContent = window.location.href;
@@ -248,18 +369,12 @@
                 supabase = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
                 
                 // Tester la connexion
-                const { data, error } = await supabase
+                const { error } = await supabase
                     .from('messages')
                     .select('id')
                     .limit(1);
                 
-                if (error) {
-                    if (error.message.includes('relation')) {
-                        showError("Table 'messages' non trouvée. Contactez l'admin.");
-                        return;
-                    }
-                    throw error;
-                }
+                if (error) throw error;
                 
                 isConnected = true;
                 
@@ -269,16 +384,17 @@
                 // Configurer l'écoute en temps réel
                 setupRealtime();
                 
-                // Focus sur le champ de message
+                // Focus sur le champ
                 setTimeout(() => {
                     document.getElementById('messageInput').focus();
                 }, 100);
                 
-                // Ajouter un message de bienvenue
-                addSystemMessage(`Bienvenue ${currentUser} ! 👋`);
+                // Message de bienvenue
+                addSystemMessage(`Bienvenue ${currentUser} ! 👋 Tu es maintenant connecté(e).`);
                 
             } catch (error) {
-                showError("Erreur de connexion : " + error.message);
+                document.getElementById('status').className = "status error-status";
+                document.getElementById('status').textContent = `❌ Erreur : ${error.message}`;
                 console.error(error);
             }
         }
@@ -295,6 +411,7 @@
                 if (error) throw error;
                 
                 displayMessages(data || []);
+                updateUserCount();
                 
             } catch (error) {
                 console.error("Erreur chargement:", error);
@@ -309,16 +426,21 @@
             if (messages.length === 0) {
                 container.innerHTML = 
                     '<div class="message system">' +
-                    '<strong>💭 Système</strong><br>Soyez le premier à parler !' +
+                    '<strong>👋 Bienvenue !</strong><br>Soyez le premier à parler !' +
                     '</div>';
                 return;
             }
             
+            // Réinitialiser la liste des utilisateurs
+            userList.clear();
+            
             messages.forEach(msg => {
-                addMessageToDisplay(msg.username, msg.message);
+                addMessageToDisplay(msg.username, msg.message, false);
+                userList.add(msg.username);
             });
             
             scrollToBottom();
+            updateUserCount();
         }
         
         // Configurer l'écoute en temps réel
@@ -330,7 +452,9 @@
                 .on('postgres_changes', 
                     { event: 'INSERT', schema: 'public', table: 'messages' },
                     (payload) => {
-                        addMessageToDisplay(payload.new.username, payload.new.message);
+                        addMessageToDisplay(payload.new.username, payload.new.message, true);
+                        userList.add(payload.new.username);
+                        updateUserCount();
                         playNotification();
                     }
                 )
@@ -340,12 +464,12 @@
         }
         
         // Ajouter un message à l'affichage
-        function addMessageToDisplay(username, message) {
+        function addMessageToDisplay(username, message, isNew = false) {
             const container = document.getElementById('messages');
             
             // Supprimer le message "premier à parler" si présent
             const firstMsg = container.querySelector('.system');
-            if (firstMsg && firstMsg.textContent.includes('premier')) {
+            if (firstMsg && firstMsg.textContent.includes('premier') && isNew) {
                 firstMsg.remove();
             }
             
@@ -354,10 +478,39 @@
             const isSystem = username.includes('Système') || username === 'System';
             
             div.className = 'message ' + (isOwnMessage ? 'my' : (isSystem ? 'system' : 'other'));
-            div.innerHTML = `<strong>${escapeHtml(username)}</strong><br>${escapeHtml(message)}`;
+            
+            // Ajouter une animation pour les nouveaux messages
+            if (isNew && !isOwnMessage) {
+                div.style.animation = 'fadeIn 0.3s, pulse 1s';
+            }
+            
+            // Formater l'heure
+            const now = new Date();
+            const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+            
+            div.innerHTML = `
+                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                    <strong>${escapeHtml(username)}</strong>
+                    <small style="opacity: 0.7;">${timeStr}</small>
+                </div>
+                <div>${escapeHtml(message)}</div>
+            `;
             
             container.appendChild(div);
             scrollToBottom();
+        }
+        
+        // Mettre à jour le compteur d'utilisateurs
+        function updateUserCount() {
+            const count = userList.size;
+            document.getElementById('userCount').textContent = `${count} personne${count > 1 ? 's' : ''}`;
+            
+            // Ajouter animation pulse si nouveau utilisateur
+            if (count > 1) {
+                const userCountEl = document.getElementById('userCount');
+                userCountEl.style.animation = 'pulse 1s';
+                setTimeout(() => userCountEl.style.animation = '', 1000);
+            }
         }
         
         // Ajouter un message système
@@ -366,7 +519,7 @@
             const div = document.createElement('div');
             
             div.className = 'message system';
-            div.innerHTML = `<strong>💭 Système</strong><br>${escapeHtml(text)}`;
+            div.innerHTML = `<strong>💬 Système</strong><br>${escapeHtml(text)}`;
             
             container.appendChild(div);
             scrollToBottom();
@@ -381,6 +534,7 @@
             if (!message) return;
             
             // Désactiver le bouton pendant l'envoi
+            const originalText = button.innerHTML;
             button.disabled = true;
             button.innerHTML = '⏳ Envoi...';
             
@@ -395,9 +549,9 @@
                 
                 if (error) {
                     if (error.message.includes('duplicate key')) {
-                        addSystemMessage("⚠️ Erreur technique. Contactez l'admin.");
+                        addSystemMessage("⚠️ Erreur technique. Réessaie.");
                     } else if (error.message.includes('row-level security')) {
-                        addSystemMessage("🔒 Erreur de sécurité. Vérifiez la configuration.");
+                        addSystemMessage("🔒 Erreur de sécurité.");
                     } else {
                         throw error;
                     }
@@ -408,11 +562,29 @@
                 input.focus();
                 
             } catch (error) {
-                addSystemMessage("❌ Erreur d'envoi : " + error.message);
+                addSystemMessage("❌ Erreur : " + error.message);
                 console.error(error);
             } finally {
                 button.disabled = false;
-                button.innerHTML = '📤 Envoyer';
+                button.innerHTML = originalText;
+            }
+        }
+        
+        // Changer de pseudo
+        function changeUsername() {
+            const newUsername = prompt("Nouveau pseudo :", currentUser);
+            if (newUsername && newUsername.trim() && newUsername.trim() !== currentUser) {
+                const oldUsername = currentUser;
+                currentUser = newUsername.trim();
+                localStorage.setItem('chat_username', currentUser);
+                document.getElementById('currentUser').textContent = currentUser;
+                
+                addSystemMessage(`🔄 ${oldUsername} est maintenant ${currentUser}`);
+                
+                // Retirer l'ancien pseudo de la liste
+                userList.delete(oldUsername);
+                userList.add(currentUser);
+                updateUserCount();
             }
         }
         
@@ -430,8 +602,12 @@
                 
                 document.getElementById('messages').innerHTML = 
                     '<div class="message system">' +
-                    '<strong>💭 Système</strong><br>Historique effacé' +
+                    '<strong>🧹 Nettoyage</strong><br>Historique effacé' +
                     '</div>';
+                
+                userList.clear();
+                userList.add(currentUser);
+                updateUserCount();
                 
                 addSystemMessage(`🧹 ${currentUser} a effacé l'historique du chat.`);
                 
@@ -440,44 +616,25 @@
             }
         }
         
-        // Changer de pseudo
-        function changeUsername() {
-            const newUsername = prompt("Nouveau pseudo :", currentUser);
-            if (newUsername && newUsername.trim()) {
-                const oldUsername = currentUser;
-                currentUser = newUsername.trim();
-                localStorage.setItem('chat_username', currentUser);
-                document.getElementById('currentUser').textContent = currentUser;
-                
-                addSystemMessage(`🔄 ${oldUsername} est maintenant ${currentUser}`);
-            }
-        }
-        
         // Copier le lien
         function copyLink() {
             const link = window.location.href;
             navigator.clipboard.writeText(link)
                 .then(() => {
-                    alert("✅ Lien copié dans le presse-papier !\n\n" + link);
+                    alert("✅ Lien copié !\n\nPartage-le avec :\n" + link + "\n\nMot de passe : " + CONFIG.CHAT_PASSWORD);
                 })
                 .catch(() => {
-                    prompt("📋 Copiez ce lien :", link);
+                    prompt("📋 Copie ce lien :", link);
                 });
         }
         
-        // Quitter/déconnexion
+        // Quitter
         function logout() {
-            if (confirm("Déconnexion ? Vous devrez réentrer le mot de passe.")) {
+            if (confirm("Déconnexion ? Tu devras réentrer le mot de passe et pseudo.")) {
                 localStorage.removeItem('chat_access_granted');
+                localStorage.removeItem('chat_username');
                 window.location.reload();
             }
-        }
-        
-        // Afficher une erreur
-        function showError(message) {
-            const status = document.getElementById('status');
-            status.textContent = "❌ " + message;
-            status.className = "status error-status";
         }
         
         // Faire défiler vers le bas
@@ -496,7 +653,6 @@
         // Jouer une notification
         function playNotification() {
             try {
-                // Bip simple
                 const ctx = new (window.AudioContext || window.webkitAudioContext)();
                 const oscillator = ctx.createOscillator();
                 const gainNode = ctx.createGain();
@@ -510,9 +666,7 @@
                 
                 oscillator.start();
                 oscillator.stop(ctx.currentTime + 0.1);
-            } catch (e) {
-                // Ignorer les erreurs audio
-            }
+            } catch (e) {}
         }
         
         // Entrée pour envoyer
@@ -524,7 +678,23 @@
             });
         });
         
-        // Démarrer l'application
+        // Ajouter l'animation pulse au CSS
+        const pulseStyle = document.createElement('style');
+        pulseStyle.textContent = `
+            @keyframes pulse {
+                0% { transform: scale(1); }
+                50% { transform: scale(1.05); }
+                100% { transform: scale(1); }
+            }
+            @keyframes shake {
+                0%, 100% { transform: translateX(0); }
+                10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+                20%, 40%, 60%, 80% { transform: translateX(5px); }
+            }
+        `;
+        document.head.appendChild(pulseStyle);
+        
+        // Démarrer
         window.onload = init;
     </script>
 </body>
