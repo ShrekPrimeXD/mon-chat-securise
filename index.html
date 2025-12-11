@@ -3,199 +3,122 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat en Temps Réel entre Potos</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Chat en Direct avec les Potos</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
-        .container { max-width: 900px; margin: 0 auto; background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.2); }
-        header { background: linear-gradient(to right, #4A00E0, #8E2DE2); color: white; padding: 25px; text-align: center; }
-        header h1 { font-size: 2.5rem; margin-bottom: 10px; }
-        
-        /* Configuration Supabase */
-        .setup { padding: 40px; }
-        .tabs { display: flex; gap: 10px; margin-bottom: 25px; }
-        .tab { padding: 12px 25px; background: #f0f0f0; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
-        .tab.active { background: #4A00E0; color: white; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; animation: fadeIn 0.5s; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        
-        /* Chat */
-        .chat-container { display: none; padding: 20px; }
-        .chat-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #eee; }
-        .user-info { display: flex; align-items: center; gap: 15px; }
-        .user-info span { font-weight: 600; color: #4A00E0; }
-        
-        .messages { height: 450px; overflow-y: auto; padding: 20px; background: #f9f9f9; border-radius: 15px; margin-bottom: 20px; border: 2px solid #eee; }
-        .message { margin-bottom: 20px; padding: 15px; border-radius: 15px; max-width: 80%; animation: fadeIn 0.3s; }
-        .my { background: linear-gradient(to right, #4A00E0, #8E2DE2); color: white; margin-left: auto; }
-        .other { background: #f0f0f0; margin-right: auto; }
-        .system { background: #fff3cd; color: #856404; border-left: 4px solid #ffc107; max-width: 100%; }
-        
-        .input-area { display: flex; gap: 15px; margin-bottom: 20px; }
-        .input-area input { flex: 1; padding: 15px; border: 2px solid #ddd; border-radius: 10px; font-size: 1rem; }
-        .input-area button { padding: 15px 30px; background: linear-gradient(to right, #4A00E0, #8E2DE2); color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; }
-        
-        .status { text-align: center; padding: 10px; background: #e8f4fd; border-radius: 8px; margin-bottom: 20px; }
-        .status.connected { background: #d4edda; color: #155724; }
-        
-        footer { text-align: center; padding: 25px; background: #f8f9fa; color: #666; }
-        
-        /* Formulaires */
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; }
-        .form-group input { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; }
-        
-        .btn { padding: 15px 30px; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 10px; }
-        .btn-primary { background: linear-gradient(to right, #4A00E0, #8E2DE2); color: white; }
-        .btn-secondary { background: #6c757d; color: white; }
-        
-        .info-box { background: #e8f4fd; padding: 20px; border-radius: 10px; margin: 20px 0; border-left: 5px solid #4A00E0; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
+        body { background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%); min-height: 100vh; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        header { background: linear-gradient(to right, #4776E6, #8E54E9); color: white; padding: 20px; text-align: center; }
+        .setup { padding: 30px; text-align: center; }
+        .setup h2 { color: #333; margin-bottom: 20px; }
+        input, button { padding: 12px; margin: 5px; border-radius: 8px; border: 2px solid #ddd; }
+        button { background: #4776E6; color: white; border: none; cursor: pointer; font-weight: bold; }
+        button:hover { background: #3a60c4; }
+        .chat { display: none; padding: 20px; }
+        .messages { height: 400px; overflow-y: auto; border: 2px solid #eee; border-radius: 10px; padding: 15px; margin-bottom: 15px; background: #f9f9f9; }
+        .message { margin: 10px 0; padding: 10px; border-radius: 10px; max-width: 80%; }
+        .my { background: #4776E6; color: white; margin-left: auto; }
+        .other { background: #f0f0f0; }
+        .input-area { display: flex; gap: 10px; }
+        .input-area input { flex: 1; }
+        .status { padding: 10px; text-align: center; background: #e8f4fd; border-radius: 8px; margin-bottom: 15px; }
+        .connected { background: #d4edda; }
+        footer { text-align: center; padding: 15px; background: #f8f9fa; color: #666; }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1><i class="fas fa-comments"></i> Chat en Temps Réel</h1>
-            <p>Tous vos amis voient les mêmes messages en direct !</p>
+            <h1>💬 Chat en Direct avec les Potos</h1>
+            <p>Tous vos amis voient les mêmes messages en temps réel !</p>
         </header>
         
-        <!-- Configuration -->
         <div class="setup" id="setup">
-            <div class="tabs">
-                <button class="tab active" onclick="showTab('supabaseTab')">Chat Réel (Recommandé)</button>
-                <button class="tab" onclick="showTab('demoTab')">Mode Démo (Solo)</button>
+            <h2>Configuration Simple (2 minutes)</h2>
+            
+            <p><strong>Étape 1 :</strong> Créez un compte gratuit sur <a href="https://supabase.com" target="_blank">supabase.com</a></p>
+            <p><strong>Étape 2 :</strong> Créez un projet et une table "messages"</p>
+            <p><strong>Étape 3 :</strong> Copiez vos identifiants ici :</p>
+            
+            <div style="text-align: left; max-width: 500px; margin: 20px auto;">
+                <div>
+                    <label>URL Supabase :</label><br>
+                    <input type="text" id="url" placeholder="https://xxxxxxxx.supabase.co" style="width: 100%;">
+                </div>
+                <div style="margin-top: 15px;">
+                    <label>Clé API (anon public) :</label><br>
+                    <input type="text" id="key" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." style="width: 100%;">
+                </div>
+                <div style="margin-top: 15px;">
+                    <label>Votre pseudo :</label><br>
+                    <input type="text" id="username" placeholder="Votre nom" value="Poto" style="width: 100%;">
+                </div>
             </div>
             
-            <!-- TAB 1: Supabase (Temps réel) -->
-            <div id="supabaseTab" class="tab-content active">
-                <h2><i class="fas fa-bolt"></i> Chat en temps réel avec vos amis</h2>
-                
-                <div class="info-box">
-                    <h3><i class="fas fa-info-circle"></i> Instructions (5 minutes) :</h3>
-                    <ol>
-                        <li>Créez un compte gratuit sur <a href="https://supabase.com" target="_blank">supabase.com</a></li>
-                        <li>Créez un nouveau projet</li>
-                        <li>Dans Table Editor, créez une table appelée <code>messages</code></li>
-                        <li>Ajoutez ces colonnes : <code>id</code>, <code>username</code>, <code>message</code>, <code>created_at</code></li>
-                        <li>Dans Settings > API, copiez l'URL et la clé "anon public"</li>
-                    </ol>
-                </div>
-                
-                <div class="form-group">
-                    <label>URL Supabase :</label>
-                    <input type="text" id="supabaseUrl" placeholder="https://xxxxxxxxx.supabase.co">
-                </div>
-                
-                <div class="form-group">
-                    <label>Clé API (anon public) :</label>
-                    <input type="text" id="supabaseKey" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
-                </div>
-                
-                <div class="form-group">
-                    <label>Votre pseudo :</label>
-                    <input type="text" id="supabaseUsername" placeholder="Votre nom" value="Poto">
-                </div>
-                
-                <button class="btn btn-primary" onclick="startSupabaseChat()">
-                    <i class="fas fa-rocket"></i> Lancer le chat en temps réel
-                </button>
-                
-                <div class="status" id="supabaseStatus">Prêt à se connecter...</div>
-            </div>
+            <button onclick="startChat()" style="padding: 15px 30px; font-size: 18px; margin-top: 20px;">
+                🚀 Lancer le Chat en Temps Réel
+            </button>
             
-            <!-- TAB 2: Mode Démo -->
-            <div id="demoTab" class="tab-content">
-                <h2><i class="fas fa-user"></i> Mode Démo (Test solo)</h2>
-                <p>Testez le chat localement sans configuration :</p>
-                
-                <div class="form-group">
-                    <label>Votre pseudo :</label>
-                    <input type="text" id="demoUsername" placeholder="Votre nom" value="Poto">
-                </div>
-                
-                <button class="btn btn-secondary" onclick="startDemoChat()">
-                    <i class="fas fa-play"></i> Démarrer en mode démo
+            <div style="margin-top: 30px; background: #fff3cd; padding: 15px; border-radius: 8px;">
+                <p><strong>Mode test :</strong> Pas envie de configurer ?</p>
+                <button onclick="startTestMode()" style="background: #6c757d;">
+                    🎮 Tester en mode solo d'abord
                 </button>
-                
-                <p style="margin-top: 20px; color: #666;">
-                    <i class="fas fa-exclamation-triangle"></i> 
-                    En mode démo, seul vous verrez vos messages.
-                </p>
             </div>
         </div>
         
-        <!-- Chat Interface -->
-        <div class="chat-container" id="chatContainer">
-            <div class="chat-header">
-                <h2><i class="fas fa-comment-dots"></i> Salon de discussion</h2>
-                <div class="user-info">
-                    <span id="currentUsername"></span>
-                    <button class="btn" onclick="changeUsername()" style="padding: 8px 15px; background: #f0f0f0;">
-                        <i class="fas fa-edit"></i> Changer
+        <div class="chat" id="chat">
+            <div class="status" id="status">Connexion...</div>
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h2>💬 Salon de discussion</h2>
+                <div>
+                    <span style="font-weight: bold; color: #4776E6;" id="currentUser"></span>
+                    <button onclick="changeUser()" style="margin-left: 10px; padding: 5px 10px; background: #f0f0f0; color: #333;">
+                        ✏️
                     </button>
                 </div>
             </div>
             
-            <div class="status" id="connectionStatus">
-                <i class="fas fa-circle"></i> Connexion...
-            </div>
-            
             <div class="messages" id="messages">
-                <div class="message system">
-                    <div><strong>Système</strong></div>
-                    <div>Chargement des messages...</div>
+                <div class="message" style="background: #fff3cd; max-width: 100%;">
+                    <strong>Système</strong><br>
+                    Chargement des messages...
                 </div>
             </div>
             
             <div class="input-area">
-                <input type="text" id="messageInput" placeholder="Écrivez votre message... (Entrée pour envoyer)">
-                <button onclick="sendMessage()">
-                    <i class="fas fa-paper-plane"></i> Envoyer
-                </button>
+                <input type="text" id="messageInput" placeholder="Écrivez votre message ici..." onkeypress="if(event.key=='Enter') sendMessage()">
+                <button onclick="sendMessage()">📤 Envoyer</button>
             </div>
             
             <div style="text-align: center; margin-top: 20px;">
-                <button onclick="clearChat()" style="padding: 10px 20px; background: #dc3545; color: white; border: none; border-radius: 8px; cursor: pointer;">
-                    <i class="fas fa-trash"></i> Effacer l'historique
+                <p><small>Partagez ce lien avec vos amis : <span id="pageUrl"></span></small></p>
+                <button onclick="clearChat()" style="background: #dc3545; margin-top: 10px;">
+                    🗑️ Effacer l'historique
                 </button>
-                <p style="margin-top: 10px; color: #666; font-size: 0.9rem;">
-                    Partagez le lien avec vos amis : <span id="chatLink"></span>
-                </p>
             </div>
         </div>
         
         <footer>
-            <p>Chat en temps réel • Partagez le lien avec vos potes !</p>
-            <p><small>Hébergé gratuitement sur GitHub Pages + Supabase</small></p>
+            <p>Chat créé en 30min • Messages en temps réel • Partagez avec vos potos !</p>
         </footer>
     </div>
     
-    <!-- Supabase JS -->
+    <!-- Inclure Supabase -->
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     
     <script>
         // Variables
-        let supabaseClient = null;
+        let supabase = null;
         let currentUser = "Poto";
-        let isDemoMode = false;
-        let demoMessages = [];
+        let isTestMode = false;
         
-        // Afficher les onglets
-        function showTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-            
-            document.getElementById(tabId).classList.add('active');
-            event.target.classList.add('active');
-        }
-        
-        // Démarrer le chat Supabase (TEMPS RÉEL)
-        async function startSupabaseChat() {
-            const url = document.getElementById('supabaseUrl').value.trim();
-            const key = document.getElementById('supabaseKey').value.trim();
-            const username = document.getElementById('supabaseUsername').value.trim() || "Poto";
+        // Démarrer le chat avec Supabase
+        async function startChat() {
+            const url = document.getElementById('url').value.trim();
+            const key = document.getElementById('key').value.trim();
+            const username = document.getElementById('username').value.trim() || "Poto";
             
             if (!url || !key) {
                 alert("Veuillez entrer l'URL et la clé Supabase");
@@ -203,106 +126,92 @@
             }
             
             currentUser = username;
-            isDemoMode = false;
+            isTestMode = false;
             
-            // Mettre à jour le statut
-            const status = document.getElementById('supabaseStatus');
-            status.textContent = "Connexion à Supabase...";
+            // Afficher le statut
+            document.getElementById('status').textContent = "Connexion à Supabase...";
             
             try {
-                // Initialiser Supabase
-                supabaseClient = window.supabase.createClient(url, key);
+                // Créer le client Supabase
+                supabase = window.supabase.createClient(url, key);
                 
                 // Tester la connexion
-                const { data, error } = await supabaseClient
+                const { data, error } = await supabase
                     .from('messages')
                     .select('*')
                     .limit(1);
                 
                 if (error) {
-                    // Si la table n'existe pas
+                    // Erreur commune : table non créée
                     if (error.message.includes('relation') || error.code === 'PGRST301') {
-                        const create = confirm("La table 'messages' n'existe pas. Voulez-vous essayer de la créer ?");
+                        const create = confirm("La table 'messages' n'existe pas. Essayez-vous de la créer ?");
                         
                         if (create) {
-                            await createTable();
+                            // Essayer de créer en envoyant un message
+                            const { error: insertError } = await supabase
+                                .from('messages')
+                                .insert({
+                                    username: 'System',
+                                    message: 'Table créée !',
+                                    created_at: new Date().toISOString()
+                                });
+                            
+                            if (insertError) {
+                                alert("Impossible de créer la table. Créez-la manuellement dans Supabase > Table Editor");
+                                return;
+                            }
                         } else {
-                            status.textContent = "Erreur : Table 'messages' manquante";
                             return;
                         }
                     } else {
-                        status.textContent = "Erreur de connexion : " + error.message;
+                        alert("Erreur : " + error.message);
                         return;
                     }
                 }
                 
-                // Démarrer le chat
-                startChat();
+                // Cacher la configuration, montrer le chat
+                document.getElementById('setup').style.display = 'none';
+                document.getElementById('chat').style.display = 'block';
+                document.getElementById('currentUser').textContent = currentUser;
+                document.getElementById('pageUrl').textContent = window.location.href;
+                
+                // Charger les messages
+                loadMessages();
+                
+                // Configurer l'écoute en temps réel
                 setupRealtime();
-                status.textContent = "Connecté à Supabase !";
-                status.classList.add('connected');
+                
+                document.getElementById('status').textContent = "✅ Connecté en temps réel ! Partagez le lien avec vos amis.";
+                document.getElementById('status').className = "status connected";
+                
+                // Focus sur le champ de message
+                setTimeout(() => {
+                    document.getElementById('messageInput').focus();
+                }, 100);
                 
             } catch (error) {
-                status.textContent = "Erreur : " + error.message;
-                console.error(error);
+                alert("Erreur : " + error.message);
             }
         }
         
-        // Créer la table messages
-        async function createTable() {
-            try {
-                // Essayer d'insérer un message (créera la table si elle n'existe pas avec les bonnes colonnes)
-                const { error } = await supabaseClient
-                    .from('messages')
-                    .insert({
-                        username: 'System',
-                        message: 'Table créée avec succès !',
-                        created_at: new Date().toISOString()
-                    });
-                
-                if (error) {
-                    throw new Error("Impossible de créer la table automatiquement. Veuillez la créer manuellement dans Supabase.");
-                }
-                
-                return true;
-            } catch (error) {
-                alert(error.message);
-                throw error;
-            }
-        }
-        
-        // Mode démo
-        function startDemoChat() {
-            const username = document.getElementById('demoUsername').value.trim() || "Poto";
-            currentUser = username;
-            isDemoMode = true;
-            supabaseClient = null;
+        // Mode test (solo)
+        function startTestMode() {
+            currentUser = document.getElementById('username').value.trim() || "Poto";
+            isTestMode = true;
             
-            // Ajouter des messages d'exemple
-            demoMessages = [
-                { id: 1, username: "System", message: "Mode démo activé - Seul vous voyez ces messages", created_at: new Date().toISOString() },
-                { id: 2, username: "Poto1", message: "Salut ! Test du chat", created_at: new Date().toISOString() },
-                { id: 3, username: "Poto2", message: "Ça marche super bien ! 😄", created_at: new Date().toISOString() }
-            ];
-            
-            startChat();
-            
-            const status = document.getElementById('connectionStatus');
-            status.innerHTML = '<i class="fas fa-circle"></i> Mode démo - Messages locaux uniquement';
-            status.classList.add('connected');
-        }
-        
-        // Démarrer le chat
-        function startChat() {
             document.getElementById('setup').style.display = 'none';
-            document.getElementById('chatContainer').style.display = 'block';
-            document.getElementById('currentUsername').textContent = currentUser;
+            document.getElementById('chat').style.display = 'block';
+            document.getElementById('currentUser').textContent = currentUser;
+            document.getElementById('pageUrl').textContent = window.location.href;
             
-            // Afficher le lien de partage
-            document.getElementById('chatLink').textContent = window.location.href;
+            document.getElementById('status').textContent = "🎮 Mode test - Seul vous voyez ces messages";
+            document.getElementById('status').className = "status";
             
-            // Charger les messages
-            loadMessages();
+            // Vider les messages
+            document.getElementById('messages').innerHTML = 
+                '<div class="message" style="background: #fff3cd; max-width: 100%;">' +
+                '<strong>Système</strong><br>Mode test activé. Vos messages ne sont pas envoyés aux autres.' +
+                '</div>';
             
             // Focus sur le champ
             setTimeout(() => {
@@ -312,134 +221,95 @@
         
         // Charger les messages
         async function loadMessages() {
-            const messagesDiv = document.getElementById('messages');
-            messagesDiv.innerHTML = '<div class="message system"><div><strong>Système</strong></div><div>Chargement...</div></div>';
+            if (isTestMode) return;
             
-            if (isDemoMode) {
-                // Mode démo
-                displayMessages(demoMessages);
-                return;
-            }
-            
-            // Mode Supabase
             try {
-                const { data, error } = await supabaseClient
+                const { data, error } = await supabase
                     .from('messages')
                     .select('*')
-                    .order('created_at', { ascending: true });
+                    .order('created_at', { ascending: true })
+                    .limit(100);
                 
                 if (error) throw error;
                 
-                displayMessages(data || []);
+                const messagesDiv = document.getElementById('messages');
+                messagesDiv.innerHTML = '';
+                
+                if (data.length === 0) {
+                    messagesDiv.innerHTML = 
+                        '<div class="message" style="background: #fff3cd; max-width: 100%;">' +
+                        '<strong>Système</strong><br>Soyez le premier à envoyer un message !' +
+                        '</div>';
+                    return;
+                }
+                
+                data.forEach(msg => {
+                    addMessage(msg.username, msg.message);
+                });
+                
+                // Faire défiler vers le bas
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+                
             } catch (error) {
-                messagesDiv.innerHTML = '<div class="message system"><div><strong>Erreur</strong></div><div>' + error.message + '</div></div>';
+                console.error("Erreur:", error);
             }
-        }
-        
-        // Afficher les messages
-        function displayMessages(messages) {
-            const messagesDiv = document.getElementById('messages');
-            messagesDiv.innerHTML = '';
-            
-            if (messages.length === 0) {
-                messagesDiv.innerHTML = '<div class="message system"><div><strong>Système</strong></div><div>Aucun message. Soyez le premier à écrire !</div></div>';
-                return;
-            }
-            
-            messages.forEach(msg => {
-                addMessageToDisplay(msg.username, msg.message, msg.created_at);
-            });
-            
-            scrollToBottom();
-        }
-        
-        // Ajouter un message à l'affichage
-        function addMessageToDisplay(username, message, timestamp) {
-            const messagesDiv = document.getElementById('messages');
-            const div = document.createElement('div');
-            
-            // Formater la date
-            const date = new Date(timestamp);
-            const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            
-            // Déterminer la classe
-            let className = 'message ';
-            if (username === currentUser) {
-                className += 'my';
-            } else if (username === 'System') {
-                className += 'system';
-            } else {
-                className += 'other';
-            }
-            
-            div.className = className;
-            div.innerHTML = `
-                <div><strong>${escapeHtml(username)}</strong> <small>${timeStr}</small></div>
-                <div>${escapeHtml(message)}</div>
-            `;
-            
-            messagesDiv.appendChild(div);
-            scrollToBottom();
         }
         
         // Configurer l'écoute en temps réel
         function setupRealtime() {
-            if (isDemoMode || !supabaseClient) return;
+            if (isTestMode || !supabase) return;
             
             // S'abonner aux nouveaux messages
-            supabaseClient
+            supabase
                 .channel('public:messages')
                 .on('postgres_changes', 
                     { event: 'INSERT', schema: 'public', table: 'messages' },
                     (payload) => {
-                        // Afficher le nouveau message
-                        addMessageToDisplay(
-                            payload.new.username,
-                            payload.new.message,
-                            payload.new.created_at
-                        );
+                        // Ajouter le nouveau message
+                        addMessage(payload.new.username, payload.new.message);
                         
-                        // Jouer un son (optionnel)
-                        playNotificationSound();
+                        // Petit son de notification
+                        playNotification();
                     }
                 )
                 .subscribe();
+        }
+        
+        // Ajouter un message à l'affichage
+        function addMessage(username, message) {
+            const messagesDiv = document.getElementById('messages');
+            const div = document.createElement('div');
             
-            // Mettre à jour le statut
-            const status = document.getElementById('connectionStatus');
-            status.innerHTML = '<i class="fas fa-circle"></i> Connecté en temps réel ! Vos amis voient vos messages.';
-            status.classList.add('connected');
+            div.className = 'message ' + (username === currentUser ? 'my' : 'other');
+            div.innerHTML = `<strong>${escapeHtml(username)}</strong><br>${escapeHtml(message)}`;
+            
+            messagesDiv.appendChild(div);
+            
+            // Faire défiler vers le bas
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
         }
         
         // Envoyer un message
         async function sendMessage() {
             const input = document.getElementById('messageInput');
-            const message = input.value.trim();
+            const text = input.value.trim();
             
-            if (!message) return;
+            if (!text) return;
             
-            if (isDemoMode) {
-                // Mode démo
-                const newMsg = {
-                    id: demoMessages.length + 1,
-                    username: currentUser,
-                    message: message,
-                    created_at: new Date().toISOString()
-                };
-                
-                demoMessages.push(newMsg);
-                addMessageToDisplay(currentUser, message, new Date().toISOString());
+            if (isTestMode) {
+                // Mode test : ajouter localement
+                addMessage(currentUser, text);
                 input.value = '';
                 return;
             }
             
-            // Mode Supabase
+            // Mode Supabase : envoyer à la base
             try {
-                const { error } = await supabaseClient
+                const { error } = await supabase
                     .from('messages')
                     .insert({
                         username: currentUser,
-                        message: message,
+                        message: text,
                         created_at: new Date().toISOString()
                     });
                 
@@ -454,85 +324,73 @@
         
         // Effacer l'historique
         async function clearChat() {
-            if (!confirm("Effacer tous les messages ?")) return;
+            if (!confirm("Effacer tous les messages pour tout le monde ?")) return;
             
-            if (isDemoMode) {
-                demoMessages = [];
-                loadMessages();
+            if (isTestMode) {
+                document.getElementById('messages').innerHTML = 
+                    '<div class="message" style="background: #fff3cd; max-width: 100%;">' +
+                    '<strong>Système</strong><br>Historique effacé (mode test)' +
+                    '</div>';
                 return;
             }
             
             try {
-                const { error } = await supabaseClient
+                const { error } = await supabase
                     .from('messages')
                     .delete()
                     .neq('id', 0);
                 
                 if (error) throw error;
                 
-                loadMessages();
+                document.getElementById('messages').innerHTML = 
+                    '<div class="message" style="background: #fff3cd; max-width: 100%;">' +
+                    '<strong>Système</strong><br>Historique effacé' +
+                    '</div>';
+                
             } catch (error) {
                 alert("Erreur : " + error.message);
             }
         }
         
         // Changer de pseudo
-        function changeUsername() {
-            const newUsername = prompt("Nouveau pseudo :", currentUser);
-            if (newUsername && newUsername.trim()) {
-                currentUser = newUsername.trim();
-                document.getElementById('currentUsername').textContent = currentUser;
+        function changeUser() {
+            const newName = prompt("Nouveau pseudo :", currentUser);
+            if (newName && newName.trim()) {
+                currentUser = newName.trim();
+                document.getElementById('currentUser').textContent = currentUser;
             }
         }
         
-        // Utilitaires
-        function scrollToBottom() {
-            const messagesDiv = document.getElementById('messages');
-            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        // Jouer un son de notification
+        function playNotification() {
+            try {
+                // Simple bip
+                const audio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEAQB8AAEAfAAABAAgAZGF0YQ');
+                audio.volume = 0.3;
+                audio.play();
+            } catch (e) {
+                // Ignorer
+            }
         }
         
+        // Échapper le HTML
         function escapeHtml(text) {
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
         }
         
-        function playNotificationSound() {
-            // Créer un son de notification simple
-            try {
-                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                const oscillator = audioContext.createOscillator();
-                const gainNode = audioContext.createGain();
-                
-                oscillator.connect(gainNode);
-                gainNode.connect(audioContext.destination);
-                
-                oscillator.frequency.value = 800;
-                oscillator.type = 'sine';
-                gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
-                
-                oscillator.start();
-                oscillator.stop(audioContext.currentTime + 0.2);
-            } catch (e) {
-                // Ignorer les erreurs audio
-            }
-        }
-        
-        // Entrée pour envoyer
-        document.getElementById('messageInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                sendMessage();
-            }
-        });
-        
         // Initialisation
         window.onload = function() {
-            console.log("Chat prêt !");
+            // Pré-remplir avec un pseudo aléatoire
+            document.getElementById('username').value = "Poto_" + Math.floor(Math.random() * 1000);
             
-            // Pré-remplir avec des exemples
-            document.getElementById('supabaseUsername').value = "Poto_" + Math.floor(Math.random() * 1000);
-            document.getElementById('demoUsername').value = "Poto_" + Math.floor(Math.random() * 1000);
+            // Raccourci Ctrl+L pour le lien
+            document.addEventListener('keydown', function(e) {
+                if (e.ctrlKey && e.key === 'l') {
+                    prompt("Lien à partager :", window.location.href);
+                }
+            });
         };
     </script>
 </body>
