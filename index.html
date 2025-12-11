@@ -3,133 +3,181 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat en Direct avec les Potos</title>
+    <title>Chat en Temps Réel - Potos</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
-        body { background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%); min-height: 100vh; padding: 20px; }
-        .container { max-width: 800px; margin: 0 auto; background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
-        header { background: linear-gradient(to right, #4776E6, #8E54E9); color: white; padding: 20px; text-align: center; }
-        .setup { padding: 30px; text-align: center; }
-        .setup h2 { color: #333; margin-bottom: 20px; }
-        input, button { padding: 12px; margin: 5px; border-radius: 8px; border: 2px solid #ddd; }
-        button { background: #4776E6; color: white; border: none; cursor: pointer; font-weight: bold; }
-        button:hover { background: #3a60c4; }
-        .chat { display: none; padding: 20px; }
-        .messages { height: 400px; overflow-y: auto; border: 2px solid #eee; border-radius: 10px; padding: 15px; margin-bottom: 15px; background: #f9f9f9; }
-        .message { margin: 10px 0; padding: 10px; border-radius: 10px; max-width: 80%; }
-        .my { background: #4776E6; color: white; margin-left: auto; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.2); }
+        
+        header { background: linear-gradient(to right, #4A00E0, #8E2DE2); color: white; padding: 25px; text-align: center; }
+        header h1 { font-size: 2.5rem; margin-bottom: 10px; }
+        
+        .setup { padding: 40px; }
+        .config-card { background: #f8f9ff; padding: 30px; border-radius: 15px; margin-bottom: 25px; border: 2px solid #e6e9ff; }
+        
+        input, button { padding: 15px; border-radius: 10px; border: 2px solid #ddd; font-size: 1rem; }
+        input { width: 100%; margin-bottom: 15px; }
+        button { background: linear-gradient(to right, #4A00E0, #8E2DE2); color: white; border: none; cursor: pointer; font-weight: bold; transition: transform 0.3s; }
+        button:hover { transform: translateY(-3px); }
+        
+        .chat-container { display: none; padding: 25px; }
+        .chat-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #eee; }
+        
+        .messages { height: 450px; overflow-y: auto; padding: 20px; background: #f9f9f9; border-radius: 15px; margin-bottom: 20px; border: 2px solid #eee; }
+        .message { margin-bottom: 15px; padding: 15px; border-radius: 12px; max-width: 80%; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .my { background: linear-gradient(to right, #4A00E0, #8E2DE2); color: white; margin-left: auto; }
         .other { background: #f0f0f0; }
-        .input-area { display: flex; gap: 10px; }
-        .input-area input { flex: 1; }
-        .status { padding: 10px; text-align: center; background: #e8f4fd; border-radius: 8px; margin-bottom: 15px; }
-        .connected { background: #d4edda; }
-        footer { text-align: center; padding: 15px; background: #f8f9fa; color: #666; }
+        .system { background: #fff3cd; border-left: 4px solid #ffc107; max-width: 100%; }
+        
+        .input-area { display: flex; gap: 15px; margin-bottom: 20px; }
+        .input-area input { flex: 1; margin: 0; }
+        
+        .status { padding: 15px; border-radius: 10px; margin-bottom: 20px; text-align: center; font-weight: bold; }
+        .connecting { background: #fff3cd; color: #856404; }
+        .connected { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        
+        .instructions { background: #e8f4fd; padding: 20px; border-radius: 10px; margin: 20px 0; border-left: 5px solid #4A00E0; }
+        
+        .btn-group { display: flex; gap: 15px; margin-top: 20px; flex-wrap: wrap; }
+        .btn-group button { flex: 1; min-width: 200px; }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>💬 Chat en Direct avec les Potos</h1>
-            <p>Tous vos amis voient les mêmes messages en temps réel !</p>
+            <h1>💬 Chat en Temps Réel</h1>
+            <p>Discutez avec vos potos en direct !</p>
         </header>
         
         <div class="setup" id="setup">
-            <h2>Configuration Simple (2 minutes)</h2>
-            
-            <p><strong>Étape 1 :</strong> Créez un compte gratuit sur <a href="https://supabase.com" target="_blank">supabase.com</a></p>
-            <p><strong>Étape 2 :</strong> Créez un projet et une table "messages"</p>
-            <p><strong>Étape 3 :</strong> Copiez vos identifiants ici :</p>
-            
-            <div style="text-align: left; max-width: 500px; margin: 20px auto;">
-                <div>
-                    <label>URL Supabase :</label><br>
-                    <input type="text" id="url" placeholder="https://xxxxxxxx.supabase.co" style="width: 100%;">
+            <div class="config-card">
+                <h2 style="color: #4A00E0; margin-bottom: 25px; text-align: center;">Configuration</h2>
+                
+                <div class="instructions">
+                    <h3>🚨 Solution à l'erreur "duplicate key" :</h3>
+                    <p><strong>Problème :</strong> L'ID ne s'auto-incrémente pas correctement.</p>
+                    <p><strong>Solution :</strong> Recréez la table avec ce script SQL :</p>
+                    <pre style="background: white; padding: 15px; border-radius: 8px; overflow-x: auto;">
+CREATE TABLE messages (
+  id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+  username TEXT NOT NULL,
+  message TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
+);</pre>
                 </div>
-                <div style="margin-top: 15px;">
-                    <label>Clé API (anon public) :</label><br>
-                    <input type="text" id="key" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." style="width: 100%;">
+                
+                <h3>Vos identifiants :</h3>
+                <input type="text" id="url" placeholder="URL Supabase (ex: https://xxx.supabase.co)">
+                <input type="text" id="key" placeholder="Clé API anon public (ex: eyJhbGci...)">
+                <input type="text" id="username" placeholder="Votre pseudo" value="Poto">
+                
+                <div class="btn-group">
+                    <button onclick="startChat()">
+                        🚀 Démarrer le Chat
+                    </button>
+                    <button onclick="autoConfigure()" style="background: #6c757d;">
+                        ⚡ Configuration Auto
+                    </button>
+                    <button onclick="startTestMode()" style="background: #17a2b8;">
+                        🎮 Mode Test Solo
+                    </button>
                 </div>
-                <div style="margin-top: 15px;">
-                    <label>Votre pseudo :</label><br>
-                    <input type="text" id="username" placeholder="Votre nom" value="Poto" style="width: 100%;">
-                </div>
-            </div>
-            
-            <button onclick="startChat()" style="padding: 15px 30px; font-size: 18px; margin-top: 20px;">
-                🚀 Lancer le Chat en Temps Réel
-            </button>
-            
-            <div style="margin-top: 30px; background: #fff3cd; padding: 15px; border-radius: 8px;">
-                <p><strong>Mode test :</strong> Pas envie de configurer ?</p>
-                <button onclick="startTestMode()" style="background: #6c757d;">
-                    🎮 Tester en mode solo d'abord
-                </button>
             </div>
         </div>
         
-        <div class="chat" id="chat">
-            <div class="status" id="status">Connexion...</div>
-            
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <h2>💬 Salon de discussion</h2>
-                <div>
-                    <span style="font-weight: bold; color: #4776E6;" id="currentUser"></span>
-                    <button onclick="changeUser()" style="margin-left: 10px; padding: 5px 10px; background: #f0f0f0; color: #333;">
-                        ✏️
+        <div class="chat-container" id="chatContainer">
+            <div class="chat-header">
+                <h2 style="color: #4A00E0;">💬 Salon de discussion</h2>
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <span style="font-weight: bold; color: #4A00E0;" id="currentUser"></span>
+                    <button onclick="changeUser()" style="padding: 8px 15px; background: #f0f0f0; color: #333;">
+                        ✏️ Changer
                     </button>
                 </div>
             </div>
             
+            <div class="status connecting" id="status">Initialisation...</div>
+            
             <div class="messages" id="messages">
-                <div class="message" style="background: #fff3cd; max-width: 100%;">
-                    <strong>Système</strong><br>
+                <div class="message system">
+                    <strong>💭 Système</strong><br>
                     Chargement des messages...
                 </div>
             </div>
             
             <div class="input-area">
-                <input type="text" id="messageInput" placeholder="Écrivez votre message ici..." onkeypress="if(event.key=='Enter') sendMessage()">
-                <button onclick="sendMessage()">📤 Envoyer</button>
+                <input type="text" id="messageInput" placeholder="Tapez votre message ici... (Entrée pour envoyer)">
+                <button onclick="sendMessage()" id="sendButton">📤 Envoyer</button>
             </div>
             
-            <div style="text-align: center; margin-top: 20px;">
-                <p><small>Partagez ce lien avec vos amis : <span id="pageUrl"></span></small></p>
-                <button onclick="clearChat()" style="background: #dc3545; margin-top: 10px;">
-                    🗑️ Effacer l'historique
-                </button>
+            <div style="text-align: center;">
+                <p><strong>🔗 Partagez ce lien :</strong> <span id="pageUrl" style="color: #4A00E0; word-break: break-all;"></span></p>
+                
+                <div class="btn-group">
+                    <button onclick="showFixDuplicateKey()" style="background: #ffc107; color: #333;">
+                        🔧 Réparer erreur "duplicate key"
+                    </button>
+                    <button onclick="clearChat()" style="background: #dc3545;">
+                        🗑️ Effacer historique
+                    </button>
+                    <button onclick="showHelp()" style="background: #6c757d;">
+                        ❓ Aide
+                    </button>
+                </div>
             </div>
         </div>
-        
-        <footer>
-            <p>Chat créé en 30min • Messages en temps réel • Partagez avec vos potos !</p>
-        </footer>
     </div>
     
-    <!-- Inclure Supabase -->
+    <!-- Supabase -->
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     
     <script>
-        // Variables
+        // Variables globales
         let supabase = null;
         let currentUser = "Poto";
         let isTestMode = false;
         
-        // Démarrer le chat avec Supabase
+        // Initialisation
+        function init() {
+            // Pré-remplir avec un pseudo aléatoire
+            const randomId = Math.floor(Math.random() * 1000);
+            document.getElementById('username').value = `Poto_${randomId}`;
+            
+            // Raccourcis clavier
+            document.addEventListener('keydown', function(e) {
+                if (e.ctrlKey && e.key === 'h') showHelp();
+                if (e.ctrlKey && e.key === 'f') showFixDuplicateKey();
+                if (e.ctrlKey && e.key === 'l') {
+                    prompt("📋 Lien à partager :", window.location.href);
+                }
+            });
+            
+            console.log("Chat initialisé !");
+        }
+        
+        // Démarrer le chat
         async function startChat() {
             const url = document.getElementById('url').value.trim();
             const key = document.getElementById('key').value.trim();
             const username = document.getElementById('username').value.trim() || "Poto";
             
-            if (!url || !key) {
-                alert("Veuillez entrer l'URL et la clé Supabase");
+            // Validation
+            if (!url) {
+                alert("Veuillez entrer l'URL Supabase");
+                return;
+            }
+            
+            if (!key) {
+                alert("Veuillez entrer la clé API");
                 return;
             }
             
             currentUser = username;
             isTestMode = false;
             
-            // Afficher le statut
-            document.getElementById('status').textContent = "Connexion à Supabase...";
+            updateStatus("🔌 Connexion à Supabase...", "connecting");
             
             try {
                 // Créer le client Supabase
@@ -138,82 +186,163 @@
                 // Tester la connexion
                 const { data, error } = await supabase
                     .from('messages')
-                    .select('*')
+                    .select('id')
                     .limit(1);
                 
                 if (error) {
-                    // Erreur commune : table non créée
-                    if (error.message.includes('relation') || error.code === 'PGRST301') {
-                        const create = confirm("La table 'messages' n'existe pas. Essayez-vous de la créer ?");
-                        
-                        if (create) {
-                            // Essayer de créer en envoyant un message
-                            const { error: insertError } = await supabase
-                                .from('messages')
-                                .insert({
-                                    username: 'System',
-                                    message: 'Table créée !',
-                                    created_at: new Date().toISOString()
-                                });
-                            
-                            if (insertError) {
-                                alert("Impossible de créer la table. Créez-la manuellement dans Supabase > Table Editor");
-                                return;
-                            }
-                        } else {
-                            return;
-                        }
-                    } else {
-                        alert("Erreur : " + error.message);
+                    if (error.message.includes('relation')) {
+                        updateStatus("📋 Table 'messages' non trouvée", "error");
+                        showCreateTableInstructions();
                         return;
                     }
+                    throw error;
                 }
                 
-                // Cacher la configuration, montrer le chat
-                document.getElementById('setup').style.display = 'none';
-                document.getElementById('chat').style.display = 'block';
-                document.getElementById('currentUser').textContent = currentUser;
-                document.getElementById('pageUrl').textContent = window.location.href;
-                
-                // Charger les messages
-                loadMessages();
-                
-                // Configurer l'écoute en temps réel
+                // Connexion réussie
+                showChatInterface();
+                await loadMessages();
                 setupRealtime();
                 
-                document.getElementById('status').textContent = "✅ Connecté en temps réel ! Partagez le lien avec vos amis.";
-                document.getElementById('status').className = "status connected";
-                
-                // Focus sur le champ de message
-                setTimeout(() => {
-                    document.getElementById('messageInput').focus();
-                }, 100);
+                updateStatus("✅ Connecté ! Messages en temps réel activés.", "connected");
                 
             } catch (error) {
-                alert("Erreur : " + error.message);
+                updateStatus(`❌ Erreur : ${error.message}`, "error");
+                console.error(error);
             }
         }
         
-        // Mode test (solo)
+        // Configuration automatique
+        async function autoConfigure() {
+            const url = document.getElementById('url').value.trim();
+            const key = document.getElementById('key').value.trim();
+            
+            if (!url || !key) {
+                alert("Veuillez d'abord entrer l'URL et la clé");
+                return;
+            }
+            
+            updateStatus("⚙️ Configuration automatique en cours...", "connecting");
+            
+            try {
+                supabase = window.supabase.createClient(url, key);
+                
+                // 1. Essayer de créer la table
+                const createResult = await createTableAutomatically();
+                
+                if (!createResult.success) {
+                    updateStatus(`❌ ${createResult.message}`, "error");
+                    return;
+                }
+                
+                // 2. Désactiver RLS
+                const rlsResult = await disableRLS();
+                
+                // 3. Démarrer le chat
+                currentUser = document.getElementById('username').value.trim() || "Poto";
+                isTestMode = false;
+                
+                showChatInterface();
+                await loadMessages();
+                setupRealtime();
+                
+                updateStatus("✅ Configuration réussie ! Chat activé.", "connected");
+                
+            } catch (error) {
+                updateStatus(`❌ Erreur : ${error.message}`, "error");
+            }
+        }
+        
+        // Créer la table automatiquement
+        async function createTableAutomatically() {
+            try {
+                // Essayer de créer la table via SQL
+                const { error } = await supabase.rpc('exec_sql', {
+                    sql: `
+                        CREATE TABLE IF NOT EXISTS messages (
+                            id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+                            username TEXT NOT NULL,
+                            message TEXT NOT NULL,
+                            created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
+                        );
+                    `
+                }).catch(async () => {
+                    // Si RPC n'existe pas, essayer avec une insertion
+                    const { error: insertError } = await supabase
+                        .from('messages')
+                        .insert({
+                            username: 'System',
+                            message: 'Test création table',
+                            created_at: new Date().toISOString()
+                        });
+                    
+                    if (insertError && insertError.message.includes('relation')) {
+                        throw new Error("Impossible de créer la table. Créez-la manuellement.");
+                    }
+                });
+                
+                return { success: true, message: "Table créée avec succès" };
+                
+            } catch (error) {
+                return { success: false, message: error.message };
+            }
+        }
+        
+        // Désactiver RLS
+        async function disableRLS() {
+            try {
+                // Essayer de désactiver RLS
+                const { error } = await supabase.rpc('exec_sql', {
+                    sql: 'ALTER TABLE messages DISABLE ROW LEVEL SECURITY;'
+                }).catch(async () => {
+                    // Alternative : créer une politique permissive
+                    const { error: policyError } = await supabase.rpc('exec_sql', {
+                        sql: `
+                            CREATE POLICY IF NOT EXISTS "allow_all" ON messages
+                            FOR ALL USING (true) WITH CHECK (true);
+                        `
+                    });
+                    
+                    if (policyError) {
+                        console.warn("Impossible de configurer RLS, continuons...");
+                    }
+                });
+                
+                return { success: true };
+            } catch (error) {
+                return { success: false };
+            }
+        }
+        
+        // Afficher l'interface de chat
+        function showChatInterface() {
+            document.getElementById('setup').style.display = 'none';
+            document.getElementById('chatContainer').style.display = 'block';
+            document.getElementById('currentUser').textContent = currentUser;
+            document.getElementById('pageUrl').textContent = window.location.href;
+            
+            // Focus sur le champ de message
+            setTimeout(() => {
+                document.getElementById('messageInput').focus();
+            }, 100);
+        }
+        
+        // Mode test solo
         function startTestMode() {
             currentUser = document.getElementById('username').value.trim() || "Poto";
             isTestMode = true;
             
             document.getElementById('setup').style.display = 'none';
-            document.getElementById('chat').style.display = 'block';
+            document.getElementById('chatContainer').style.display = 'block';
             document.getElementById('currentUser').textContent = currentUser;
             document.getElementById('pageUrl').textContent = window.location.href;
             
-            document.getElementById('status').textContent = "🎮 Mode test - Seul vous voyez ces messages";
-            document.getElementById('status').className = "status";
+            updateStatus("🎮 Mode test - Messages locaux seulement", "connecting");
             
-            // Vider les messages
             document.getElementById('messages').innerHTML = 
-                '<div class="message" style="background: #fff3cd; max-width: 100%;">' +
-                '<strong>Système</strong><br>Mode test activé. Vos messages ne sont pas envoyés aux autres.' +
+                '<div class="message system">' +
+                '<strong>💭 Système</strong><br>Mode test activé. Les messages ne sont pas partagés.' +
                 '</div>';
             
-            // Focus sur le champ
             setTimeout(() => {
                 document.getElementById('messageInput').focus();
             }, 100);
@@ -230,45 +359,50 @@
                     .order('created_at', { ascending: true })
                     .limit(100);
                 
-                if (error) throw error;
-                
-                const messagesDiv = document.getElementById('messages');
-                messagesDiv.innerHTML = '';
-                
-                if (data.length === 0) {
-                    messagesDiv.innerHTML = 
-                        '<div class="message" style="background: #fff3cd; max-width: 100%;">' +
-                        '<strong>Système</strong><br>Soyez le premier à envoyer un message !' +
-                        '</div>';
-                    return;
+                if (error) {
+                    if (error.message.includes('duplicate key')) {
+                        showFixDuplicateKey();
+                    }
+                    throw error;
                 }
                 
-                data.forEach(msg => {
-                    addMessage(msg.username, msg.message);
-                });
-                
-                // Faire défiler vers le bas
-                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+                displayMessages(data || []);
                 
             } catch (error) {
-                console.error("Erreur:", error);
+                console.error("Erreur chargement:", error);
             }
+        }
+        
+        // Afficher les messages
+        function displayMessages(messages) {
+            const container = document.getElementById('messages');
+            container.innerHTML = '';
+            
+            if (messages.length === 0) {
+                container.innerHTML = 
+                    '<div class="message system">' +
+                    '<strong>💭 Système</strong><br>Soyez le premier à envoyer un message !' +
+                    '</div>';
+                return;
+            }
+            
+            messages.forEach(msg => {
+                addMessageToDisplay(msg.username, msg.message);
+            });
+            
+            scrollToBottom();
         }
         
         // Configurer l'écoute en temps réel
         function setupRealtime() {
             if (isTestMode || !supabase) return;
             
-            // S'abonner aux nouveaux messages
             supabase
                 .channel('public:messages')
                 .on('postgres_changes', 
                     { event: 'INSERT', schema: 'public', table: 'messages' },
                     (payload) => {
-                        // Ajouter le nouveau message
-                        addMessage(payload.new.username, payload.new.message);
-                        
-                        // Petit son de notification
+                        addMessageToDisplay(payload.new.username, payload.new.message);
                         playNotification();
                     }
                 )
@@ -276,60 +410,152 @@
         }
         
         // Ajouter un message à l'affichage
-        function addMessage(username, message) {
-            const messagesDiv = document.getElementById('messages');
+        function addMessageToDisplay(username, message) {
+            const container = document.getElementById('messages');
             const div = document.createElement('div');
             
-            div.className = 'message ' + (username === currentUser ? 'my' : 'other');
+            // Nettoyer le contenu système
+            const systemMsg = container.querySelector('.system');
+            if (systemMsg && systemMsg.textContent.includes('premier')) {
+                systemMsg.remove();
+            }
+            
+            // Déterminer la classe
+            const isOwnMessage = username === currentUser;
+            const isSystem = username === 'System' || username.includes('Système');
+            
+            div.className = 'message ' + (isOwnMessage ? 'my' : (isSystem ? 'system' : 'other'));
             div.innerHTML = `<strong>${escapeHtml(username)}</strong><br>${escapeHtml(message)}`;
             
-            messagesDiv.appendChild(div);
-            
-            // Faire défiler vers le bas
-            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            container.appendChild(div);
+            scrollToBottom();
         }
         
         // Envoyer un message
         async function sendMessage() {
             const input = document.getElementById('messageInput');
-            const text = input.value.trim();
+            const message = input.value.trim();
             
-            if (!text) return;
+            if (!message) return;
+            
+            // Désactiver temporairement le bouton
+            const button = document.getElementById('sendButton');
+            button.disabled = true;
+            button.innerHTML = '⏳ Envoi...';
             
             if (isTestMode) {
-                // Mode test : ajouter localement
-                addMessage(currentUser, text);
-                input.value = '';
+                // Mode test
+                setTimeout(() => {
+                    addMessageToDisplay(currentUser, message);
+                    input.value = '';
+                    input.focus();
+                    button.disabled = false;
+                    button.innerHTML = '📤 Envoyer';
+                }, 300);
                 return;
             }
             
-            // Mode Supabase : envoyer à la base
             try {
                 const { error } = await supabase
                     .from('messages')
                     .insert({
                         username: currentUser,
-                        message: text,
+                        message: message,
                         created_at: new Date().toISOString()
                     });
                 
-                if (error) throw error;
+                if (error) {
+                    if (error.message.includes('duplicate key')) {
+                        updateStatus("❌ Erreur 'duplicate key' - Voir solution ci-dessous", "error");
+                        showFixDuplicateKey();
+                    } else if (error.message.includes('row-level security')) {
+                        updateStatus("❌ Erreur RLS - Désactivez RLS", "error");
+                        showRLSInstructions();
+                    } else {
+                        throw error;
+                    }
+                    return;
+                }
                 
                 input.value = '';
+                input.focus();
                 
             } catch (error) {
-                alert("Erreur d'envoi : " + error.message);
+                alert(`Erreur : ${error.message}`);
+            } finally {
+                button.disabled = false;
+                button.innerHTML = '📤 Envoyer';
             }
+        }
+        
+        // Afficher solution pour duplicate key
+        function showFixDuplicateKey() {
+            const solution = `
+🚨 SOLUTION à l'erreur "duplicate key" :
+
+OPTION 1 (Recommandée) - Recréer la table :
+1. Dans Supabase > Table Editor
+2. Supprimez la table "messages"
+3. Exécutez ce SQL dans SQL Editor :
+
+CREATE TABLE messages (
+  id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+  username TEXT NOT NULL,
+  message TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
+);
+
+OPTION 2 - Réinitialiser la séquence :
+Exécutez ce SQL :
+
+ALTER SEQUENCE messages_id_seq RESTART WITH 1;
+SELECT setval('messages_id_seq', COALESCE((SELECT MAX(id) FROM messages), 0) + 1);
+            `;
+            
+            alert(solution);
+        }
+        
+        // Afficher instructions RLS
+        function showRLSInstructions() {
+            alert(`
+🔓 Instructions pour RLS (Row Level Security) :
+
+1. Dans Supabase > Table Editor
+2. Cliquez sur la table "messages"
+3. Allez dans l'onglet "Policies"
+4. DÉSACTIVEZ "Row Level Security" (RLS)
+   OU
+5. Créez une politique "Allow all operations"
+            `);
+        }
+        
+        // Afficher instructions création table
+        function showCreateTableInstructions() {
+            alert(`
+📋 Créer la table "messages" :
+
+1. Dans Supabase > SQL Editor
+2. Exécutez cette commande :
+
+CREATE TABLE messages (
+  id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+  username TEXT NOT NULL,
+  message TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
+);
+
+3. Désactivez RLS dans Table Editor > Policies
+            `);
         }
         
         // Effacer l'historique
         async function clearChat() {
-            if (!confirm("Effacer tous les messages pour tout le monde ?")) return;
+            if (!confirm("Effacer TOUS les messages pour tout le monde ?")) return;
             
             if (isTestMode) {
                 document.getElementById('messages').innerHTML = 
-                    '<div class="message" style="background: #fff3cd; max-width: 100%;">' +
-                    '<strong>Système</strong><br>Historique effacé (mode test)' +
+                    '<div class="message system">' +
+                    '<strong>💭 Système</strong><br>Historique effacé (mode test)' +
                     '</div>';
                 return;
             }
@@ -343,8 +569,8 @@
                 if (error) throw error;
                 
                 document.getElementById('messages').innerHTML = 
-                    '<div class="message" style="background: #fff3cd; max-width: 100%;">' +
-                    '<strong>Système</strong><br>Historique effacé' +
+                    '<div class="message system">' +
+                    '<strong>💭 Système</strong><br>Historique effacé' +
                     '</div>';
                 
             } catch (error) {
@@ -354,23 +580,48 @@
         
         // Changer de pseudo
         function changeUser() {
-            const newName = prompt("Nouveau pseudo :", currentUser);
-            if (newName && newName.trim()) {
-                currentUser = newName.trim();
+            const newUsername = prompt("Nouveau pseudo :", currentUser);
+            if (newUsername && newUsername.trim()) {
+                currentUser = newUsername.trim();
                 document.getElementById('currentUser').textContent = currentUser;
             }
         }
         
-        // Jouer un son de notification
-        function playNotification() {
-            try {
-                // Simple bip
-                const audio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEAQB8AAEAfAAABAAgAZGF0YQ');
-                audio.volume = 0.3;
-                audio.play();
-            } catch (e) {
-                // Ignorer
-            }
+        // Afficher aide générale
+        function showHelp() {
+            alert(`
+🆘 AIDE - Chat en Temps Réel
+
+PROBLÈMES COURANTS :
+
+1. "duplicate key" → Recréez la table avec AUTO-INCREMENT
+2. "row-level security" → Désactivez RLS
+3. "relation does not exist" → Créez la table "messages"
+
+SOLUTIONS :
+- Cliquez sur "⚡ Configuration Auto"
+- Ou suivez les instructions détaillées
+
+RACCOURCIS :
+- Ctrl+H : Aide
+- Ctrl+F : Fix "duplicate key"
+- Ctrl+L : Copier le lien
+
+📞 Besoin d'aide ? Revenez ici !
+            `);
+        }
+        
+        // Mettre à jour le statut
+        function updateStatus(text, type) {
+            const status = document.getElementById('status');
+            status.textContent = text;
+            status.className = `status ${type}`;
+        }
+        
+        // Faire défiler vers le bas
+        function scrollToBottom() {
+            const container = document.getElementById('messages');
+            container.scrollTop = container.scrollHeight;
         }
         
         // Échapper le HTML
@@ -380,18 +631,17 @@
             return div.innerHTML;
         }
         
-        // Initialisation
-        window.onload = function() {
-            // Pré-remplir avec un pseudo aléatoire
-            document.getElementById('username').value = "Poto_" + Math.floor(Math.random() * 1000);
-            
-            // Raccourci Ctrl+L pour le lien
-            document.addEventListener('keydown', function(e) {
-                if (e.ctrlKey && e.key === 'l') {
-                    prompt("Lien à partager :", window.location.href);
-                }
-            });
-        };
+        // Jouer une notification
+        function playNotification() {
+            try {
+                const audio = new Audio("data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEAQB8AAEAfAAABAAgAZGF0YQ");
+                audio.volume = 0.3;
+                audio.play();
+            } catch (e) {}
+        }
+        
+        // Démarrer quand la page est chargée
+        window.onload = init;
     </script>
 </body>
 </html>
