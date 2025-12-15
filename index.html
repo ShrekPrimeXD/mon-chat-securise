@@ -1,87 +1,524 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat Privé entre Camarades</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
-        .container { max-width: 900px; margin: 0 auto; background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.2); }
-        
-        header { background: linear-gradient(to right, #4A00E0, #8E2DE2); color: white; padding: 25px; text-align: center; }
-        header h1 { font-size: 2.5rem; margin-bottom: 10px; }
-        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            transition: all 0.3s;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s;
+        }
+
+        header {
+            background: linear-gradient(to right, #4A00E0, #8E2DE2);
+            color: white;
+            padding: 25px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
         /* Écran d'accès */
-        .access-screen { padding: 50px 30px; text-align: center; }
-        .access-screen h2 { color: #4A00E0; margin-bottom: 30px; }
-        
-        .access-form { max-width: 400px; margin: 0 auto; }
-        .form-step { display: none; }
-        .form-step.active { display: block; animation: fadeIn 0.5s; }
-        
-        .form-group { margin-bottom: 25px; text-align: left; }
-        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #333; }
-        .form-group input { width: 100%; padding: 15px; font-size: 1.1rem; border: 2px solid #ddd; border-radius: 10px; }
-        .form-group input:focus { border-color: #4A00E0; outline: none; }
-        
-        .access-button { width: 100%; padding: 15px; margin-top: 10px; background: #4A00E0; color: white; border: none; border-radius: 10px; font-size: 1.2rem; cursor: pointer; transition: transform 0.3s; }
-        .access-button:hover { transform: translateY(-3px); }
-        
-        .error { color: #dc3545; margin-top: 10px; text-align: center; display: none; }
-        .success { color: #28a745; margin-top: 10px; text-align: center; display: none; }
-        
+        .access-screen {
+            padding: 50px 30px;
+            text-align: center;
+        }
+
+        .access-screen h2 {
+            color: #4A00E0;
+            margin-bottom: 30px;
+            transition: all 0.3s;
+        }
+
+        .access-form {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .form-step {
+            display: none;
+        }
+
+        .form-step.active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            transition: all 0.3s;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1rem;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus {
+            border-color: #4A00E0;
+            outline: none;
+        }
+
+        .access-button {
+            width: 100%;
+            padding: 15px;
+            margin-top: 10px;
+            background: #4A00E0;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: transform 0.3s, background 0.3s;
+        }
+
+        .access-button:hover {
+            transform: translateY(-3px);
+        }
+
+        .error {
+            color: #dc3545;
+            margin-top: 10px;
+            text-align: center;
+            display: none;
+        }
+
+        .success {
+            color: #28a745;
+            margin-top: 10px;
+            text-align: center;
+            display: none;
+        }
+
         /* Chat */
-        .chat-container { display: none; padding: 25px; }
-        .chat-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #eee; }
-        
-        .messages { height: 450px; overflow-y: auto; padding: 20px; background: #f9f9f9; border-radius: 15px; margin-bottom: 20px; border: 2px solid #eee; }
-        .message { margin-bottom: 15px; padding: 15px; border-radius: 12px; max-width: 80%; animation: fadeIn 0.3s; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .my { background: linear-gradient(to right, #4A00E0, #8E2DE2); color: white; margin-left: auto; }
-        .other { background: #f0f0f0; }
-        .system { background: #fff3cd; border-left: 4px solid #ffc107; max-width: 100%; }
-        
-        .input-area { display: flex; gap: 15px; margin-bottom: 20px; }
-        .input-area input { flex: 1; padding: 15px; border: 2px solid #ddd; border-radius: 10px; font-size: 1rem; }
-        .input-area button { padding: 15px 30px; background: linear-gradient(to right, #4A00E0, #8E2DE2); color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; }
-        
-        .status { padding: 15px; border-radius: 10px; margin-bottom: 20px; text-align: center; }
-        .connected { background: #d4edda; color: #155724; }
-        .error-status { background: #f8d7da; color: #721c24; }
-        
-        .user-info { display: flex; align-items: center; gap: 15px; }
-        
-        footer { text-align: center; padding: 20px; background: #f8f9fa; color: #666; }
-        
+        .chat-container {
+            display: none;
+            padding: 25px;
+        }
+
+        .chat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #eee;
+            transition: all 0.3s;
+        }
+
+        .messages {
+            height: 450px;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            border: 2px solid #eee;
+            transition: all 0.3s;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 15px;
+            border-radius: 12px;
+            max-width: 80%;
+            animation: fadeIn 0.3s;
+            transition: all 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .my {
+            background: linear-gradient(to right, #4A00E0, #8E2DE2);
+            color: white;
+            margin-left: auto;
+            transition: all 0.3s;
+        }
+
+        .other {
+            background: #f0f0f0;
+            transition: all 0.3s;
+        }
+
+        .system {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            max-width: 100%;
+            transition: all 0.3s;
+        }
+
+        .input-area {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .input-area input {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .input-area button {
+            padding: 15px 30px;
+            background: linear-gradient(to right, #4A00E0, #8E2DE2);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .status {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .connected {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .error-status {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            background: #f8f9fa;
+            color: #666;
+            transition: all 0.3s;
+        }
+
         /* Navigation entre étapes */
-        .step-indicator { display: flex; justify-content: center; gap: 30px; margin-bottom: 30px; }
-        .step { display: flex; flex-direction: column; align-items: center; }
-        .step-circle { width: 40px; height: 40px; border-radius: 50%; background: #ddd; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-bottom: 10px; }
-        .step.active .step-circle { background: #4A00E0; color: white; }
-        .step.completed .step-circle { background: #28a745; color: white; }
-        .step-label { font-size: 0.9rem; color: #666; }
-        
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .step-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .step.active .step-circle {
+            background: #4A00E0;
+            color: white;
+        }
+
+        .step.completed .step-circle {
+            background: #28a745;
+            color: white;
+        }
+
+        .step-label {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        /* NOUVEAU : Liste des utilisateurs connectés */
+        .connected-users-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            flex-wrap: wrap;
+            transition: all 0.3s;
+        }
+
+        .connected-users {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .user-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 15px;
+            background: white;
+            border-radius: 20px;
+            border: 2px solid #4A00E0;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .user-badge.current-user {
+            background: #4A00E0;
+            color: white;
+        }
+
+        .user-status {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #28a745;
+            transition: all 0.3s;
+        }
+
+        /* Thème Sombre avec BLEU */
+        body.dark-theme {
+            background: linear-gradient(135deg, #0a1929 0%, #0d1b2a 100%);
+        }
+
+        .dark-theme .container {
+            background: #0d1b2a;
+            color: #e0e1dd;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+        }
+
+        .dark-theme header {
+            background: linear-gradient(to right, #1e88e5, #1565c0);
+            color: white;
+        }
+
+        .dark-theme .access-screen h2 {
+            color: #64b5f6;
+        }
+
+        .dark-theme .form-group label {
+            color: #e0e1dd;
+        }
+
+        .dark-theme .form-group input {
+            background: #1b263b;
+            border-color: #415a77;
+            color: #e0e1dd;
+        }
+
+        .dark-theme .form-group input:focus {
+            border-color: #64b5f6;
+        }
+
+        .dark-theme .access-button {
+            background: #1e88e5;
+            color: white;
+        }
+
+        .dark-theme .chat-header {
+            border-bottom-color: #415a77;
+        }
+
+        .dark-theme .chat-header h2 {
+            color: #64b5f6;
+        }
+
+        .dark-theme .messages {
+            background: #1b263b;
+            border-color: #415a77;
+        }
+
+        .dark-theme .other {
+            background: #2d4059;
+            color: #e0e1dd;
+        }
+
+        .dark-theme .system {
+            background: #2d3a4d;
+            color: #bbdefb;
+            border-left-color: #2196f3;
+        }
+
+        .dark-theme .my {
+            background: linear-gradient(to right, #1e88e5, #1565c0);
+            color: white;
+        }
+
+        .dark-theme .connected-users-container {
+            background: #1b263b;
+        }
+
+        .dark-theme .user-badge {
+            background: #2d4059;
+            color: #e0e1dd;
+            border-color: #64b5f6;
+        }
+
+        .dark-theme .user-badge.current-user {
+            background: #1e88e5;
+            color: white;
+        }
+
+        .dark-theme .input-area input {
+            background: #1b263b;
+            border-color: #415a77;
+            color: #e0e1dd;
+        }
+
+        .dark-theme .input-area input:focus {
+            border-color: #64b5f6;
+        }
+
+        .dark-theme .input-area button {
+            background: linear-gradient(to right, #1e88e5, #1565c0);
+            color: white;
+        }
+
+        .dark-theme .status.connected {
+            background: #1e3a5f;
+            color: #90caf9;
+        }
+
+        .dark-theme footer {
+            background: #1b263b;
+            color: #a3b1c6;
+        }
+
+        .dark-theme .user-info span {
+            color: #64b5f6;
+        }
+
+        .dark-theme .user-info button {
+            background: #2d4059;
+            color: #e0e1dd;
+        }
+
+        .dark-theme .step-circle {
+            background: #1b263b;
+            color: #e0e1dd;
+        }
+
+        .dark-theme .step.active .step-circle {
+            background: #1e88e5;
+            color: white;
+        }
+
+        .dark-theme .step.completed .step-circle {
+            background: #28a745;
+        }
+
+        .dark-theme .step-label {
+            color: #a3b1c6;
+        }
+
+        .dark-theme .error {
+            color: #ef9a9a;
+        }
+
+        .dark-theme .success {
+            color: #81c784;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
-            .chat-header { flex-direction: column; align-items: flex-start; gap: 15px; }
-            .input-area { flex-direction: column; }
-            .input-area button { width: 100%; }
-            .step-indicator { gap: 15px; }
+            .chat-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .input-area {
+                flex-direction: column;
+            }
+
+            .input-area button {
+                width: 100%;
+            }
+
+            .step-indicator {
+                gap: 15px;
+            }
+
+            .connected-users-container {
+                flex-direction: column;
+                align-items: flex-start;
+            }
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <header>
             <h1>🔒 Chat Privé entre Camarades</h1>
             <p>Accès réservé - Choisis ton pseudo !</p>
         </header>
-        
+
         <!-- Écran d'accès -->
         <div class="access-screen" id="accessScreen">
             <h2>🔐 Accès au Chat</h2>
-            
+
             <div class="step-indicator">
                 <div class="step active" id="step1">
                     <div class="step-circle">1</div>
@@ -96,7 +533,7 @@
                     <div class="step-label">Chatter !</div>
                 </div>
             </div>
-            
+
             <div class="access-form">
                 <!-- Étape 1 : Mot de passe -->
                 <div class="form-step active" id="stepPassword">
@@ -109,12 +546,13 @@
                     </button>
                     <div class="error" id="passwordError">Mot de passe incorrect</div>
                 </div>
-                
+
                 <!-- Étape 2 : Pseudo -->
                 <div class="form-step" id="stepUsername">
                     <div class="form-group">
                         <label for="usernameInput">Choisis ton pseudo :</label>
-                        <input type="text" id="usernameInput" placeholder="Ex: Maxime, Sarah, Tom..." maxlength="20" autofocus>
+                        <input type="text" id="usernameInput" placeholder="Ex: Maxime, Sarah, Tom..." maxlength="20"
+                            autofocus>
                         <small style="color: #666; display: block; margin-top: 5px;">
                             Choisis un nom unique pour que tout le monde te reconnaisse !
                         </small>
@@ -126,72 +564,90 @@
                     <div class="success" id="usernameSuccess">Pseudo validé !</div>
                 </div>
             </div>
-            
+
             <p style="margin-top: 30px; color: #666; font-size: 0.9rem;">
                 <i>Demande le mot de passe à tes camarades</i>
             </p>
         </div>
-        
+
         <!-- Interface du chat -->
         <div class="chat-container" id="chatContainer">
             <div class="chat-header">
                 <h2 style="color: #4A00E0;">💬 Salon de Classe</h2>
                 <div class="user-info">
                     <span style="font-weight: bold; color: #4A00E0; font-size: 1.1rem;" id="currentUser"></span>
-                    <button onclick="changeUsername()" style="padding: 8px 15px; background: #f0f0f0; color: #333; border: none; border-radius: 5px;">
+                    <button onclick="changeUsername()"
+                        style="padding: 8px 15px; background: #f0f0f0; color: #333; border: none; border-radius: 5px;">
                         ✏️ Changer
                     </button>
                 </div>
             </div>
-            
+
             <div class="status connected" id="status">
                 ✅ Connecté au chat - En temps réel
             </div>
-            
+
             <div class="messages" id="messages">
                 <div class="message system">
                     <strong>👋 Bienvenue !</strong><br>
                     Chargement des messages...
                 </div>
             </div>
-            
+
             <div class="input-area">
-                <input type="text" id="messageInput" placeholder="Écris ton message ici... (Entrée pour envoyer)" autofocus>
+                <input type="text" id="messageInput" placeholder="Écris ton message ici... (Entrée pour envoyer)"
+                    autofocus>
                 <button onclick="sendMessage()" id="sendBtn">📤 Envoyer</button>
             </div>
-            
+
+            <!-- NOUVEAU : Liste des utilisateurs connectés -->
+            <div class="connected-users-container">
+                <span style="font-weight: bold;">👥 En ligne :</span>
+                <div class="connected-users" id="connectedUsers">
+                    <!-- Les badges utilisateurs seront ajoutés ici -->
+                </div>
+            </div>
+
             <div style="text-align: center; margin-top: 25px;">
                 <div style="display: flex; justify-content: center; gap: 15px; flex-wrap: wrap;">
-                    <button onclick="copyLink()" style="padding: 10px 20px; background: #17a2b8; color: white; border: none; border-radius: 8px;">
+                    <button onclick="copyLink()"
+                        style="padding: 10px 20px; background: #17a2b8; color: white; border: none; border-radius: 8px;">
                         📋 Copier le lien
                     </button>
-
-                    <button onclick="clearChat()" style="padding: 10px 20px; background: #dc3545; color: white; border: none; border-radius: 8px;">
+                    <button onclick="clearChat()"
+                        style="padding: 10px 20px; background: #dc3545; color: white; border: none; border-radius: 8px;">
                         🗑️ Effacer tout
                     </button>
-                    <button onclick="logout()" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 8px;">
+                    <!-- BOUTON DE THÈME AJOUTÉ ICI -->
+                    <button onclick="toggleTheme()" id="themeBtn"
+                        style="padding: 10px 20px; background: #1e88e5; color: white; border: none; border-radius: 8px;">
+                        🌙 Mode Sombre
+                    </button>
+                    <button onclick="logout()"
+                        style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 8px;">
                         🚪 Quitter
                     </button>
                 </div>
-                
+
                 <p style="margin-top: 20px; color: #666; font-size: 0.9rem;">
                     <strong>Lien à partager :</strong> <span id="chatLink" style="word-break: break-all;"></span>
                 </p>
-                
+
                 <div style="margin-top: 20px; font-size: 0.8rem; color: #888;">
-                    <p>👥 Connectés : <span id="userCount">Chargement...</span></p>
+                    <p>📊 Messages : <span id="messageCount">0</span> • Connectés : <span
+                            id="userCount">Chargement...</span></p>
                 </div>
             </div>
         </div>
-        
+
         <footer>
             <p>Chat privé pour la classe • Pseudo unique par personne • Messages en temps réel</p>
         </footer>
     </div>
-    
+
     <!-- Supabase -->
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-    
+
     <script>
         // ============================================
         // CONFIGURATION
@@ -201,52 +657,107 @@
             SUPABASE_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRtd291cHZhcmlxdmlzb3B4cnhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0NDY2MjgsImV4cCI6MjA4MTAyMjYyOH0.A9yGS5OK63SOhcGo7fQHeabA_fdX59KVOxdfq0gSmn8",
             CHAT_PASSWORD: "1234"
         };
-        
+
         // Variables globales
         let supabase = null;
         let currentUser = "";
         let isConnected = false;
         let userList = new Set(); // Pour suivre les utilisateurs connectés
-        
+        let userActivity = new Map(); // Suivi de l'activité des utilisateurs
+        let messageCount = 0;
+        let isDarkTheme = false;
+
         // Initialisation
         function init() {
             console.log("Initialisation du chat...");
-            
+
+            // Charger le thème sauvegardé
+            const savedTheme = localStorage.getItem('chat_theme');
+            if (savedTheme === 'dark') {
+                isDarkTheme = true;
+                applyDarkTheme();
+            }
+
+            // Mettre à jour le texte du bouton
+            updateThemeButton();
+
             // Vérifier si déjà connecté
             const savedAccess = localStorage.getItem('chat_access_granted');
             const savedUsername = localStorage.getItem('chat_username');
-            
+
             if (savedAccess === 'true' && savedUsername) {
                 currentUser = savedUsername;
                 startChat();
             } else {
                 showStep('password');
                 document.getElementById('passwordInput').focus();
-                
+
                 // Entrée pour valider
-                document.getElementById('passwordInput').addEventListener('keypress', function(e) {
+                document.getElementById('passwordInput').addEventListener('keypress', function (e) {
                     if (e.key === 'Enter') checkPassword();
                 });
-                document.getElementById('usernameInput').addEventListener('keypress', function(e) {
+                document.getElementById('usernameInput').addEventListener('keypress', function (e) {
                     if (e.key === 'Enter') setUsername();
                 });
             }
-            
+
             // Raccourcis
-            document.addEventListener('keydown', function(e) {
+            document.addEventListener('keydown', function (e) {
                 if (e.ctrlKey && e.key === 'l') copyLink();
                 if (e.ctrlKey && e.key === 'q') logout();
                 if (e.ctrlKey && e.key === 'n') suggestUsername();
+                if (e.ctrlKey && e.key === 't') toggleTheme();
             });
         }
-        
+
+        // Basculer le thème
+        function toggleTheme() {
+            isDarkTheme = !isDarkTheme;
+
+            if (isDarkTheme) {
+                applyDarkTheme();
+                localStorage.setItem('chat_theme', 'dark');
+                addSystemMessage("🌙 Mode sombre (bleu) activé");
+            } else {
+                applyLightTheme();
+                localStorage.setItem('chat_theme', 'light');
+                addSystemMessage("☀️ Mode clair (violet) activé");
+            }
+
+            updateThemeButton();
+        }
+
+        // Appliquer le thème sombre (BLEU)
+        function applyDarkTheme() {
+            document.body.classList.add('dark-theme');
+        }
+
+        // Appliquer le thème clair (VIOLET)
+        function applyLightTheme() {
+            document.body.classList.remove('dark-theme');
+        }
+
+        // Mettre à jour le texte du bouton
+        function updateThemeButton() {
+            const themeBtn = document.getElementById('themeBtn');
+            if (isDarkTheme) {
+                themeBtn.innerHTML = "☀️ Mode Clair";
+                themeBtn.style.background = "#1e88e5";
+                themeBtn.style.color = "white";
+            } else {
+                themeBtn.innerHTML = "🌙 Mode Sombre";
+                themeBtn.style.background = "#1e88e5";
+                themeBtn.style.color = "white";
+            }
+        }
+
         // Afficher une étape
         function showStep(step) {
             document.querySelectorAll('.form-step').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.step').forEach(el => {
                 el.classList.remove('active', 'completed');
             });
-            
+
             if (step === 'password') {
                 document.getElementById('stepPassword').classList.add('active');
                 document.getElementById('step1').classList.add('active');
@@ -256,17 +767,17 @@
                 document.getElementById('step1').classList.add('completed');
                 document.getElementById('step2').classList.add('active');
                 document.getElementById('usernameInput').focus();
-                
+
                 // Suggestion de pseudo
-                
+                suggestUsername();
             }
         }
-        
+
         // Vérifier le mot de passe
         function checkPassword() {
             const input = document.getElementById('passwordInput');
             const errorDiv = document.getElementById('passwordError');
-            
+
             if (input.value === CONFIG.CHAT_PASSWORD) {
                 errorDiv.style.display = 'none';
                 showStep('username');
@@ -274,28 +785,28 @@
                 errorDiv.style.display = 'block';
                 input.value = '';
                 input.focus();
-                
+
                 // Animation d'erreur
                 input.style.animation = 'shake 0.5s';
                 setTimeout(() => input.style.animation = '', 500);
             }
         }
-        
+
         // Définir le pseudo
         function setUsername() {
             const input = document.getElementById('usernameInput');
             const errorDiv = document.getElementById('usernameError');
             const successDiv = document.getElementById('usernameSuccess');
-            
+
             const username = input.value.trim();
-            
+
             if (!username) {
                 errorDiv.style.display = 'block';
                 successDiv.style.display = 'none';
                 input.focus();
                 return;
             }
-            
+
             if (username.length < 2) {
                 errorDiv.textContent = "Le pseudo doit faire au moins 2 caractères";
                 errorDiv.style.display = 'block';
@@ -303,7 +814,7 @@
                 input.focus();
                 return;
             }
-            
+
             if (username.length > 20) {
                 errorDiv.textContent = "Le pseudo ne peut pas dépasser 20 caractères";
                 errorDiv.style.display = 'block';
@@ -311,12 +822,12 @@
                 input.focus();
                 return;
             }
-            
+
             // Pseudo valide
             errorDiv.style.display = 'none';
             successDiv.style.display = 'block';
             currentUser = username;
-            
+
             // Sauvegarder et démarrer le chat
             setTimeout(() => {
                 localStorage.setItem('chat_username', currentUser);
@@ -324,20 +835,25 @@
                 startChat();
             }, 500);
         }
-        
+
         // Suggérer un pseudo aléatoire
         function suggestUsername() {
             const prenoms = [
-                ""
+                "Alex", "Camille", "Léo", "Emma", "Hugo", "Léa", "Louis", "Chloé",
+                "Gabriel", "Sarah", "Raphaël", "Julie", "Thomas", "Manon", "Nathan", "Lucie",
+                "Maxime", "Clara", "Arthur", "Inès", "Jules", "Zoé", "Maël", "Lena",
+                "Paul", "Lola", "Noah", "Alice", "Gabin", "Mia", "Sacha", "Romane"
             ];
-            
+
             const qualificatifs = [
-                ""
+                "LeGénie", "Super", "Cool", "Rigolo", "Sympa", "Magic", "Pro", "VIP",
+                "Expert", "Champion", "Star", "Top", "Génial", "Fantastique", "Unique",
+                "Incognito", "Mystère", "Caché", "Secret", "Anonyme", "Temporaire"
             ];
-            
+
             const prenom = prenoms[Math.floor(Math.random() * prenoms.length)];
             const qualificatif = qualificatifs[Math.floor(Math.random() * qualificatifs.length)];
-            
+
             const suggestions = [
                 `${prenom}`,
                 `${prenom}_${qualificatif}`,
@@ -345,11 +861,11 @@
                 `${prenom.charAt(0)}.${qualificatif}`,
                 `${prenom}${Math.floor(Math.random() * 99)}`
             ];
-            
+
             document.getElementById('usernameInput').value = suggestions[Math.floor(Math.random() * suggestions.length)];
             document.getElementById('usernameInput').focus();
         }
-        
+
         // Démarrer le chat
         async function startChat() {
             // Cacher l'accès, montrer le chat
@@ -357,42 +873,48 @@
             document.getElementById('chatContainer').style.display = 'block';
             document.getElementById('currentUser').textContent = currentUser;
             document.getElementById('chatLink').textContent = window.location.href;
-            
+
             // Initialiser Supabase
             try {
                 supabase = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
-                
+
                 // Tester la connexion
                 const { error } = await supabase
                     .from('messages')
                     .select('id')
                     .limit(1);
-                
+
                 if (error) throw error;
-                
+
                 isConnected = true;
-                
+
                 // Charger les messages
                 await loadMessages();
-                
+
                 // Configurer l'écoute en temps réel
                 setupRealtime();
-                
+
                 // Focus sur le champ
                 setTimeout(() => {
                     document.getElementById('messageInput').focus();
                 }, 100);
-                
+
                 // Message de bienvenue
                 addSystemMessage(`Bienvenue ${currentUser} ! 👋 Tu es maintenant connecté(e).`);
-                
+
+                // Mettre à jour la liste des utilisateurs
+                updateUserList();
+
+                // Démarrer le suivi d'activité
+                startActivityTracking();
+
             } catch (error) {
                 document.getElementById('status').className = "status error-status";
                 document.getElementById('status').textContent = `❌ Erreur : ${error.message}`;
                 console.error(error);
             }
         }
-        
+
         // Charger les messages
         async function loadMessages() {
             try {
@@ -401,87 +923,94 @@
                     .select('*')
                     .order('created_at', { ascending: true })
                     .limit(100);
-                
+
                 if (error) throw error;
-                
+
                 displayMessages(data || []);
                 updateUserCount();
-                
+
             } catch (error) {
                 console.error("Erreur chargement:", error);
             }
         }
-        
+
         // Afficher les messages
         function displayMessages(messages) {
             const container = document.getElementById('messages');
             container.innerHTML = '';
-            
+            messageCount = messages.length;
+            updateMessageCount();
+
             if (messages.length === 0) {
-                container.innerHTML = 
+                container.innerHTML =
                     '<div class="message system">' +
                     '<strong>👋 Bienvenue !</strong><br>Soyez le premier à parler !' +
                     '</div>';
                 return;
             }
-            
+
             // Réinitialiser la liste des utilisateurs
             userList.clear();
-            
+
             messages.forEach(msg => {
                 addMessageToDisplay(msg.username, msg.message, false);
                 userList.add(msg.username);
             });
-            
+
             scrollToBottom();
             updateUserCount();
+            updateUserList();
         }
-        
+
         // Configurer l'écoute en temps réel
         function setupRealtime() {
             if (!supabase) return;
-            
+
             supabase
                 .channel('public:messages')
-                .on('postgres_changes', 
+                .on('postgres_changes',
                     { event: 'INSERT', schema: 'public', table: 'messages' },
                     (payload) => {
                         addMessageToDisplay(payload.new.username, payload.new.message, true);
                         userList.add(payload.new.username);
+                        userActivity.set(payload.new.username, Date.now());
                         updateUserCount();
+                        updateUserList();
                         playNotification();
+                        messageCount++;
+                        updateMessageCount();
                     }
                 )
                 .subscribe();
-            
+
             console.log("Écoute en temps réel activée !");
         }
-        
+
         // Ajouter un message à l'affichage
         function addMessageToDisplay(username, message, isNew = false) {
             const container = document.getElementById('messages');
-            
+
             // Supprimer le message "premier à parler" si présent
             const firstMsg = container.querySelector('.system');
             if (firstMsg && firstMsg.textContent.includes('premier') && isNew) {
                 firstMsg.remove();
             }
-            
+
             const div = document.createElement('div');
             const isOwnMessage = username === currentUser;
             const isSystem = username.includes('Système') || username === 'System';
-            
+
             div.className = 'message ' + (isOwnMessage ? 'my' : (isSystem ? 'system' : 'other'));
-            
+
             // Ajouter une animation pour les nouveaux messages
             if (isNew && !isOwnMessage) {
                 div.style.animation = 'fadeIn 0.3s, pulse 1s';
             }
-            
+
             // Formater l'heure
             const now = new Date();
             const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-            
+
             div.innerHTML = `
                 <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
                     <strong>${escapeHtml(username)}</strong>
@@ -489,49 +1018,111 @@
                 </div>
                 <div>${escapeHtml(message)}</div>
             `;
-            
+
             container.appendChild(div);
             scrollToBottom();
         }
-        
+
+        // Mettre à jour la liste des utilisateurs connectés
+        function updateUserList() {
+            const container = document.getElementById('connectedUsers');
+            container.innerHTML = '';
+
+            userList.forEach(username => {
+                const isCurrentUser = username === currentUser;
+                const lastActive = userActivity.get(username) || Date.now();
+                const timeSinceActive = Date.now() - lastActive;
+
+                // Marquer comme inactif si > 5 minutes
+                const isActive = timeSinceActive < 5 * 60 * 1000;
+
+                const badge = document.createElement('div');
+                badge.className = 'user-badge' + (isCurrentUser ? ' current-user' : '');
+
+                badge.innerHTML = `
+                    <div class="user-status" style="background: ${isActive ? '#28a745' : '#dc3545'};"></div>
+                    ${escapeHtml(username)}
+                    ${isCurrentUser ? ' (toi)' : ''}
+                `;
+
+                container.appendChild(badge);
+            });
+
+            // Si aucun utilisateur, afficher un message
+            if (userList.size === 0) {
+                container.innerHTML = '<div style="color: #666; font-style: italic;">Aucun utilisateur en ligne</div>';
+            }
+        }
+
+        // Démarrer le suivi d'activité
+        function startActivityTracking() {
+            // Mettre à jour notre activité toutes les minutes
+            setInterval(() => {
+                userActivity.set(currentUser, Date.now());
+                updateUserList();
+
+                // Nettoyer les utilisateurs inactifs (> 10 minutes)
+                const now = Date.now();
+                userList.forEach(username => {
+                    const lastActive = userActivity.get(username) || 0;
+                    if (now - lastActive > 10 * 60 * 1000) {
+                        userList.delete(username);
+                    }
+                });
+                updateUserCount();
+                updateUserList();
+            }, 60000);
+
+            // Suivre l'activité de l'utilisateur
+            document.addEventListener('mousemove', () => {
+                userActivity.set(currentUser, Date.now());
+            });
+
+            document.addEventListener('keydown', () => {
+                userActivity.set(currentUser, Date.now());
+            });
+
+            // Initialiser notre activité
+            userActivity.set(currentUser, Date.now());
+            userList.add(currentUser);
+        }
+
         // Mettre à jour le compteur d'utilisateurs
         function updateUserCount() {
             const count = userList.size;
             document.getElementById('userCount').textContent = `${count} personne${count > 1 ? 's' : ''}`;
-            
-            // Ajouter animation pulse si nouveau utilisateur
-            if (count > 1) {
-                const userCountEl = document.getElementById('userCount');
-                userCountEl.style.animation = 'pulse 1s';
-                setTimeout(() => userCountEl.style.animation = '', 1000);
-            }
         }
-        
+
+        // Mettre à jour le compteur de messages
+        function updateMessageCount() {
+            document.getElementById('messageCount').textContent = messageCount;
+        }
+
         // Ajouter un message système
         function addSystemMessage(text) {
             const container = document.getElementById('messages');
             const div = document.createElement('div');
-            
+
             div.className = 'message system';
             div.innerHTML = `<strong>💬 Système</strong><br>${escapeHtml(text)}`;
-            
+
             container.appendChild(div);
             scrollToBottom();
         }
-        
+
         // Envoyer un message
         async function sendMessage() {
             const input = document.getElementById('messageInput');
             const button = document.getElementById('sendBtn');
             const message = input.value.trim();
-            
+
             if (!message) return;
-            
+
             // Désactiver le bouton pendant l'envoi
             const originalText = button.innerHTML;
             button.disabled = true;
             button.innerHTML = '⏳ Envoi...';
-            
+
             try {
                 const { error } = await supabase
                     .from('messages')
@@ -540,7 +1131,7 @@
                         message: message,
                         created_at: new Date().toISOString()
                     });
-                
+
                 if (error) {
                     if (error.message.includes('duplicate key')) {
                         addSystemMessage("⚠️ Erreur technique. Réessaie.");
@@ -551,10 +1142,10 @@
                     }
                     return;
                 }
-                
+
                 input.value = '';
                 input.focus();
-                
+
             } catch (error) {
                 addSystemMessage("❌ Erreur : " + error.message);
                 console.error(error);
@@ -563,7 +1154,7 @@
                 button.innerHTML = originalText;
             }
         }
-        
+
         // Changer de pseudo
         function changeUsername() {
             const newUsername = prompt("Nouveau pseudo :", currentUser);
@@ -572,44 +1163,46 @@
                 currentUser = newUsername.trim();
                 localStorage.setItem('chat_username', currentUser);
                 document.getElementById('currentUser').textContent = currentUser;
-                
+
                 addSystemMessage(`🔄 ${oldUsername} est maintenant ${currentUser}`);
-                
-                // Retirer l'ancien pseudo de la liste
+
+                // Mettre à jour la liste des utilisateurs
                 userList.delete(oldUsername);
                 userList.add(currentUser);
+                userActivity.set(currentUser, Date.now());
                 updateUserCount();
+                updateUserList();
             }
         }
-        
-        // Effacer l'historique
+
+        // Effacer l'historique POUR TOUT LE MONDE
         async function clearChat() {
-            if (!confirm("⚠️ Effacer TOUS les messages pour TOUT LE MONDE ?")) return;
-            
+            if (!confirm("⚠️ ATTENTION ! Cette action va supprimer TOUS les messages pour TOUT LE MONDE. Continuer ?")) return;
+
             try {
                 const { error } = await supabase
                     .from('messages')
                     .delete()
-                    .neq('id', 0);
-                
+                    .neq('id', 0); // Supprimer tous les messages
+
                 if (error) throw error;
-                
-                document.getElementById('messages').innerHTML = 
+
+                document.getElementById('messages').innerHTML =
                     '<div class="message system">' +
                     '<strong>🧹 Nettoyage</strong><br>Historique effacé' +
                     '</div>';
-                
-                userList.clear();
-                userList.add(currentUser);
-                updateUserCount();
-                
-                addSystemMessage(`🧹 ${currentUser} a effacé l'historique du chat.`);
-                
+
+                // Réinitialiser les compteurs
+                messageCount = 0;
+                updateMessageCount();
+
+                addSystemMessage(`🧹 ${currentUser} a effacé l'historique du chat pour tout le monde.`);
+
             } catch (error) {
                 alert("Erreur : " + error.message);
             }
         }
-        
+
         // Copier le lien
         function copyLink() {
             const link = window.location.href;
@@ -621,58 +1214,63 @@
                     prompt("📋 Copie ce lien :", link);
                 });
         }
-        
+
         // Quitter
         function logout() {
             if (confirm("Déconnexion ? Tu devras réentrer le mot de passe et pseudo.")) {
+                // Retirer de la liste des utilisateurs
+                userList.delete(currentUser);
+                updateUserCount();
+                updateUserList();
+
                 localStorage.removeItem('chat_access_granted');
                 localStorage.removeItem('chat_username');
                 window.location.reload();
             }
         }
-        
+
         // Faire défiler vers le bas
         function scrollToBottom() {
             const container = document.getElementById('messages');
             container.scrollTop = container.scrollHeight;
         }
-        
+
         // Échapper le HTML
         function escapeHtml(text) {
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
         }
-        
+
         // Jouer une notification
         function playNotification() {
             try {
                 const ctx = new (window.AudioContext || window.webkitAudioContext)();
                 const oscillator = ctx.createOscillator();
                 const gainNode = ctx.createGain();
-                
+
                 oscillator.connect(gainNode);
                 gainNode.connect(ctx.destination);
-                
+
                 oscillator.frequency.value = 800;
                 gainNode.gain.setValueAtTime(0.1, ctx.currentTime);
                 gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
-                
+
                 oscillator.start();
                 oscillator.stop(ctx.currentTime + 0.1);
-            } catch (e) {}
+            } catch (e) { }
         }
-        
+
         // Entrée pour envoyer
-        document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('messageInput').addEventListener('keypress', function(e) {
+        document.addEventListener('DOMContentLoaded', function () {
+            document.getElementById('messageInput').addEventListener('keypress', function (e) {
                 if (e.key === 'Enter') {
                     sendMessage();
                 }
             });
         });
-        
-        // Ajouter l'animation pulse au CSS
+
+        // Ajouter les animations au CSS
         const pulseStyle = document.createElement('style');
         pulseStyle.textContent = `
             @keyframes pulse {
@@ -685,11 +1283,21 @@
                 10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
                 20%, 40%, 60%, 80% { transform: translateX(5px); }
             }
+            .user-badge {
+                transition: transform 0.2s;
+            }
+            .user-badge:hover {
+                transform: translateY(-2px);
+            }
+            #themeBtn {
+                transition: all 0.3s ease;
+            }
         `;
         document.head.appendChild(pulseStyle);
-        
+
         // Démarrer
         window.onload = init;
     </script>
 </body>
+
 </html>
