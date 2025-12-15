@@ -179,25 +179,23 @@
             background: linear-gradient(to right, #4A00E0, #8E2DE2);
             color: white;
             margin-left: auto;
-            transition: all 0.3s;
         }
 
         .other {
             background: #f0f0f0;
-            transition: all 0.3s;
         }
 
         .system {
             background: #fff3cd;
             border-left: 4px solid #ffc107;
             max-width: 100%;
-            transition: all 0.3s;
         }
 
         .input-area {
             display: flex;
             gap: 15px;
             margin-bottom: 15px;
+            position: relative;
         }
 
         .input-area input {
@@ -217,7 +215,6 @@
             border-radius: 10px;
             cursor: pointer;
             font-weight: bold;
-            transition: all 0.3s;
         }
 
         .status {
@@ -225,7 +222,6 @@
             border-radius: 10px;
             margin-bottom: 20px;
             text-align: center;
-            transition: all 0.3s;
         }
 
         .connected {
@@ -249,7 +245,6 @@
             padding: 20px;
             background: #f8f9fa;
             color: #666;
-            transition: all 0.3s;
         }
 
         /* Navigation entre étapes */
@@ -293,7 +288,7 @@
             color: #666;
         }
 
-        /* NOUVEAU : Liste des utilisateurs connectés */
+        /* Liste des utilisateurs connectés */
         .connected-users-container {
             display: flex;
             align-items: center;
@@ -303,7 +298,6 @@
             background: #f8f9fa;
             border-radius: 10px;
             flex-wrap: wrap;
-            transition: all 0.3s;
         }
 
         .connected-users {
@@ -321,7 +315,6 @@
             border-radius: 20px;
             border: 2px solid #4A00E0;
             font-weight: 500;
-            transition: all 0.3s;
         }
 
         .user-badge.current-user {
@@ -334,7 +327,26 @@
             height: 10px;
             border-radius: 50%;
             background: #28a745;
-            transition: all 0.3s;
+        }
+
+        .user-status.inactive {
+            background: #dc3545;
+        }
+
+        /* Indicateur "X est en train d'écrire" */
+        .typing-indicator {
+            position: absolute;
+            bottom: -25px;
+            left: 0;
+            font-size: 0.85rem;
+            color: #666;
+            font-style: italic;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .typing-indicator.show {
+            opacity: 1;
         }
 
         /* Thème Sombre avec BLEU */
@@ -480,6 +492,10 @@
             color: #81c784;
         }
 
+        .dark-theme .typing-indicator {
+            color: #90caf9;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .chat-header {
@@ -551,10 +567,10 @@
                 <div class="form-step" id="stepUsername">
                     <div class="form-group">
                         <label for="usernameInput">Choisis ton pseudo :</label>
-                        <input type="text" id="usernameInput" placeholder="Ex: Maxime, Sarah, Tom..." maxlength="20"
+                        <input type="text" id="usernameInput" placeholder="Entre ton pseudo unique" maxlength="20"
                             autofocus>
                         <small style="color: #666; display: block; margin-top: 5px;">
-                            Choisis un nom unique pour que tout le monde te reconnaisse !
+                            Tu dois choisir ton propre pseudo (pas de suggestion)
                         </small>
                     </div>
                     <button class="access-button" onclick="setUsername()">
@@ -598,9 +614,11 @@
                 <input type="text" id="messageInput" placeholder="Écris ton message ici... (Entrée pour envoyer)"
                     autofocus>
                 <button onclick="sendMessage()" id="sendBtn">📤 Envoyer</button>
+                <!-- Indicateur "X est en train d'écrire" -->
+                <div class="typing-indicator" id="typingIndicator"></div>
             </div>
 
-            <!-- NOUVEAU : Liste des utilisateurs connectés -->
+            <!-- Liste des utilisateurs connectés -->
             <div class="connected-users-container">
                 <span style="font-weight: bold;">👥 En ligne :</span>
                 <div class="connected-users" id="connectedUsers">
@@ -614,11 +632,11 @@
                         style="padding: 10px 20px; background: #17a2b8; color: white; border: none; border-radius: 8px;">
                         📋 Copier le lien
                     </button>
-                    <button onclick="clearChat()"
+                    <button onclick="clearChatForEveryone()"
                         style="padding: 10px 20px; background: #dc3545; color: white; border: none; border-radius: 8px;">
-                        🗑️ Effacer tout
+                        🗑️ Supprimer tous les messages
                     </button>
-                    <!-- BOUTON DE THÈME AJOUTÉ ICI -->
+                    <!-- BOUTON DE THÈME -->
                     <button onclick="toggleTheme()" id="themeBtn"
                         style="padding: 10px 20px; background: #1e88e5; color: white; border: none; border-radius: 8px;">
                         🌙 Mode Sombre
@@ -662,10 +680,12 @@
         let supabase = null;
         let currentUser = "";
         let isConnected = false;
-        let userList = new Set(); // Pour suivre les utilisateurs connectés
-        let userActivity = new Map(); // Suivi de l'activité des utilisateurs
+        let userList = new Set();
+        let userActivity = new Map();
         let messageCount = 0;
         let isDarkTheme = false;
+        let typingTimeout = null;
+        let typingUsers = new Map(); // Map pour suivre qui est en train d'écrire
 
         // Initialisation
         function init() {
@@ -705,7 +725,6 @@
             document.addEventListener('keydown', function (e) {
                 if (e.ctrlKey && e.key === 'l') copyLink();
                 if (e.ctrlKey && e.key === 'q') logout();
-                if (e.ctrlKey && e.key === 'n') suggestUsername();
                 if (e.ctrlKey && e.key === 't') toggleTheme();
             });
         }
@@ -767,9 +786,6 @@
                 document.getElementById('step1').classList.add('completed');
                 document.getElementById('step2').classList.add('active');
                 document.getElementById('usernameInput').focus();
-
-                // Suggestion de pseudo
-                suggestUsername();
             }
         }
 
@@ -786,7 +802,6 @@
                 input.value = '';
                 input.focus();
 
-                // Animation d'erreur
                 input.style.animation = 'shake 0.5s';
                 setTimeout(() => input.style.animation = '', 500);
             }
@@ -801,6 +816,7 @@
             const username = input.value.trim();
 
             if (!username) {
+                errorDiv.textContent = "Tu dois choisir un pseudo";
                 errorDiv.style.display = 'block';
                 successDiv.style.display = 'none';
                 input.focus();
@@ -828,42 +844,11 @@
             successDiv.style.display = 'block';
             currentUser = username;
 
-            // Sauvegarder et démarrer le chat
             setTimeout(() => {
                 localStorage.setItem('chat_username', currentUser);
                 localStorage.setItem('chat_access_granted', 'true');
                 startChat();
             }, 500);
-        }
-
-        // Suggérer un pseudo aléatoire
-        function suggestUsername() {
-            const prenoms = [
-                "Alex", "Camille", "Léo", "Emma", "Hugo", "Léa", "Louis", "Chloé",
-                "Gabriel", "Sarah", "Raphaël", "Julie", "Thomas", "Manon", "Nathan", "Lucie",
-                "Maxime", "Clara", "Arthur", "Inès", "Jules", "Zoé", "Maël", "Lena",
-                "Paul", "Lola", "Noah", "Alice", "Gabin", "Mia", "Sacha", "Romane"
-            ];
-
-            const qualificatifs = [
-                "LeGénie", "Super", "Cool", "Rigolo", "Sympa", "Magic", "Pro", "VIP",
-                "Expert", "Champion", "Star", "Top", "Génial", "Fantastique", "Unique",
-                "Incognito", "Mystère", "Caché", "Secret", "Anonyme", "Temporaire"
-            ];
-
-            const prenom = prenoms[Math.floor(Math.random() * prenoms.length)];
-            const qualificatif = qualificatifs[Math.floor(Math.random() * qualificatifs.length)];
-
-            const suggestions = [
-                `${prenom}`,
-                `${prenom}_${qualificatif}`,
-                `Elève_${Math.floor(Math.random() * 30) + 1}`,
-                `${prenom.charAt(0)}.${qualificatif}`,
-                `${prenom}${Math.floor(Math.random() * 99)}`
-            ];
-
-            document.getElementById('usernameInput').value = suggestions[Math.floor(Math.random() * suggestions.length)];
-            document.getElementById('usernameInput').focus();
         }
 
         // Démarrer le chat
@@ -879,10 +864,7 @@
                 supabase = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
 
                 // Tester la connexion
-                const { error } = await supabase
-                    .from('messages')
-                    .select('id')
-                    .limit(1);
+                const { error } = await supabase.from('messages').select('id').limit(1);
 
                 if (error) throw error;
 
@@ -893,6 +875,9 @@
 
                 // Configurer l'écoute en temps réel
                 setupRealtime();
+
+                // Configurer la détection de frappe
+                setupTypingDetection();
 
                 // Focus sur le champ
                 setTimeout(() => {
@@ -913,6 +898,51 @@
                 document.getElementById('status').textContent = `❌ Erreur : ${error.message}`;
                 console.error(error);
             }
+        }
+
+        // Configurer la détection de frappe
+        function setupTypingDetection() {
+            const messageInput = document.getElementById('messageInput');
+
+            // Événement quand l'utilisateur tape
+            messageInput.addEventListener('input', function () {
+                if (this.value.trim().length > 0) {
+                    broadcastTypingStatus(true);
+
+                    // Réinitialiser le timeout
+                    if (typingTimeout) clearTimeout(typingTimeout);
+                    typingTimeout = setTimeout(() => {
+                        broadcastTypingStatus(false);
+                    }, 1000); // Arrêter après 1 seconde d'inactivité
+                } else {
+                    broadcastTypingStatus(false);
+                }
+            });
+
+            // Événement quand l'utilisateur arrête de taper
+            messageInput.addEventListener('blur', function () {
+                broadcastTypingStatus(false);
+            });
+        }
+
+        // Diffuser le statut de frappe
+        function broadcastTypingStatus(isTyping) {
+            // On peut stocker ça dans une table Supabase ou utiliser un canal dédié
+            // Pour simplifier, on va juste mettre à jour l'affichage local
+            // Dans une vraie app, il faudrait envoyer ça aux autres utilisateurs
+
+            // Pour l'instant, on va juste afficher quand l'utilisateur local tape
+            if (isTyping) {
+                // On pourrait envoyer un événement "typing" via Supabase Realtime
+                // Mais pour ce projet simple, on va juste afficher côté client
+                updateTypingIndicator();
+            }
+        }
+
+        // Mettre à jour l'indicateur de frappe
+        function updateTypingIndicator() {
+            // Dans une vraie app, on recevrait les événements des autres utilisateurs
+            // Pour l'instant, on va juste démontrer le concept
         }
 
         // Charger les messages
@@ -949,7 +979,6 @@
                 return;
             }
 
-            // Réinitialiser la liste des utilisateurs
             userList.clear();
 
             messages.forEach(msg => {
@@ -990,7 +1019,6 @@
         function addMessageToDisplay(username, message, isNew = false) {
             const container = document.getElementById('messages');
 
-            // Supprimer le message "premier à parler" si présent
             const firstMsg = container.querySelector('.system');
             if (firstMsg && firstMsg.textContent.includes('premier') && isNew) {
                 firstMsg.remove();
@@ -1002,12 +1030,10 @@
 
             div.className = 'message ' + (isOwnMessage ? 'my' : (isSystem ? 'system' : 'other'));
 
-            // Ajouter une animation pour les nouveaux messages
             if (isNew && !isOwnMessage) {
                 div.style.animation = 'fadeIn 0.3s, pulse 1s';
             }
 
-            // Formater l'heure
             const now = new Date();
             const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
 
@@ -1032,15 +1058,13 @@
                 const isCurrentUser = username === currentUser;
                 const lastActive = userActivity.get(username) || Date.now();
                 const timeSinceActive = Date.now() - lastActive;
-
-                // Marquer comme inactif si > 5 minutes
                 const isActive = timeSinceActive < 5 * 60 * 1000;
 
                 const badge = document.createElement('div');
                 badge.className = 'user-badge' + (isCurrentUser ? ' current-user' : '');
 
                 badge.innerHTML = `
-                    <div class="user-status" style="background: ${isActive ? '#28a745' : '#dc3545'};"></div>
+                    <div class="user-status ${isActive ? '' : 'inactive'}"></div>
                     ${escapeHtml(username)}
                     ${isCurrentUser ? ' (toi)' : ''}
                 `;
@@ -1048,7 +1072,6 @@
                 container.appendChild(badge);
             });
 
-            // Si aucun utilisateur, afficher un message
             if (userList.size === 0) {
                 container.innerHTML = '<div style="color: #666; font-style: italic;">Aucun utilisateur en ligne</div>';
             }
@@ -1056,12 +1079,10 @@
 
         // Démarrer le suivi d'activité
         function startActivityTracking() {
-            // Mettre à jour notre activité toutes les minutes
             setInterval(() => {
                 userActivity.set(currentUser, Date.now());
                 updateUserList();
 
-                // Nettoyer les utilisateurs inactifs (> 10 minutes)
                 const now = Date.now();
                 userList.forEach(username => {
                     const lastActive = userActivity.get(username) || 0;
@@ -1073,7 +1094,6 @@
                 updateUserList();
             }, 60000);
 
-            // Suivre l'activité de l'utilisateur
             document.addEventListener('mousemove', () => {
                 userActivity.set(currentUser, Date.now());
             });
@@ -1082,7 +1102,6 @@
                 userActivity.set(currentUser, Date.now());
             });
 
-            // Initialiser notre activité
             userActivity.set(currentUser, Date.now());
             userList.add(currentUser);
         }
@@ -1118,7 +1137,6 @@
 
             if (!message) return;
 
-            // Désactiver le bouton pendant l'envoi
             const originalText = button.innerHTML;
             button.disabled = true;
             button.innerHTML = '⏳ Envoi...';
@@ -1146,6 +1164,10 @@
                 input.value = '';
                 input.focus();
 
+                // Arrêter l'indicateur de frappe
+                if (typingTimeout) clearTimeout(typingTimeout);
+                broadcastTypingStatus(false);
+
             } catch (error) {
                 addSystemMessage("❌ Erreur : " + error.message);
                 console.error(error);
@@ -1166,7 +1188,6 @@
 
                 addSystemMessage(`🔄 ${oldUsername} est maintenant ${currentUser}`);
 
-                // Mettre à jour la liste des utilisateurs
                 userList.delete(oldUsername);
                 userList.add(currentUser);
                 userActivity.set(currentUser, Date.now());
@@ -1175,28 +1196,32 @@
             }
         }
 
-        // Effacer l'historique POUR TOUT LE MONDE
-        async function clearChat() {
-            if (!confirm("⚠️ ATTENTION ! Cette action va supprimer TOUS les messages pour TOUT LE MONDE. Continuer ?")) return;
+        // Supprimer TOUS les messages pour TOUT LE MONDE
+        async function clearChatForEveryone() {
+            if (!confirm("⚠️ ATTENTION ! Cette action va supprimer TOUS les messages pour TOUT LE MONDE.\n\nLes messages seront effacés de l'écran de tous les utilisateurs.\n\nContinuer ?")) return;
 
             try {
+                // Supprimer tous les messages de la base de données
                 const { error } = await supabase
                     .from('messages')
                     .delete()
-                    .neq('id', 0); // Supprimer tous les messages
+                    .neq('id', 0);
 
                 if (error) throw error;
 
+                // Effacer l'affichage pour TOUT LE MONDE
+                // En temps réel, tous les utilisateurs verront leurs messages disparaître
                 document.getElementById('messages').innerHTML =
                     '<div class="message system">' +
-                    '<strong>🧹 Nettoyage</strong><br>Historique effacé' +
+                    '<strong>🧹 Nettoyage complet</strong><br>Tous les messages ont été supprimés' +
                     '</div>';
 
                 // Réinitialiser les compteurs
                 messageCount = 0;
                 updateMessageCount();
 
-                addSystemMessage(`🧹 ${currentUser} a effacé l'historique du chat pour tout le monde.`);
+                // Message système pour informer
+                addSystemMessage(`🧹 ${currentUser} a supprimé tous les messages pour tout le monde.`);
 
             } catch (error) {
                 alert("Erreur : " + error.message);
@@ -1208,7 +1233,7 @@
             const link = window.location.href;
             navigator.clipboard.writeText(link)
                 .then(() => {
-                    alert("✅ Lien copié !\n\nPartage-le avec :\n" + link + "\n\nMot de passe : " + CONFIG.CHAT_PASSWORD);
+                    alert("✅ Lien copié !\n\nPartage-le avec tes camarades :\n" + link + "\n\nMot de passe : " + CONFIG.CHAT_PASSWORD);
                 })
                 .catch(() => {
                     prompt("📋 Copie ce lien :", link);
@@ -1218,7 +1243,6 @@
         // Quitter
         function logout() {
             if (confirm("Déconnexion ? Tu devras réentrer le mot de passe et pseudo.")) {
-                // Retirer de la liste des utilisateurs
                 userList.delete(currentUser);
                 updateUserCount();
                 updateUserList();
@@ -1300,4 +1324,4 @@
     </script>
 </body>
 
-</html>
+</html
